@@ -5,7 +5,7 @@ import space.scown.advent2023.lib.{Files, Problem}
 
 import scala.util.matching.Regex
 
-case class Day1(lines: Iterator[String]) extends Problem {
+case class Day1(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val patterns = Vector("\\d")
     val patternUnion = patterns.mkString("|").r
@@ -67,8 +67,9 @@ case class Day1(lines: Iterator[String]) extends Problem {
 
 object Day1 {
   def main(args: Array[String]): Unit = {
-    Day1(Files.lines("day1.txt")).solve1()
-    Day1(Files.lines("day1.txt")).solve2()
+    val value = Files.lines("day1.txt")
+    Day1(value).solve1()
+    Day1(value).solve2()
   }
 
 }

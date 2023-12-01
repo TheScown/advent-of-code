@@ -4,8 +4,8 @@ package lib
 import scala.io.Source
 
 object Files {
-  def lines(filename: String): Iterator[String] = {
-    Source.fromResource(filename).getLines()
+  def lines(filename: String): Vector[String] = {
+    Source.fromResource(filename).getLines().toVector
   }
-  
+
 }
