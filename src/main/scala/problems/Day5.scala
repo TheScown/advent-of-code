@@ -1,6 +1,7 @@
 package space.scown.advent2023
 package problems
 
+import lib.Timer.time
 import lib.{Files, Problem}
 
 import scala.annotation.tailrec
@@ -11,7 +12,6 @@ case class Day5(lines: Vector[String]) extends Problem {
     val seeds = seedLine.replace("seeds:", "").trim().split(" ").map(_.toLong)
 
     val mappings = parseMappings()
-    println(mappings)
 
     val result = seeds.map { seed =>
       mappings.foldLeft(seed) { (input, mapping) =>
@@ -33,11 +33,9 @@ case class Day5(lines: Vector[String]) extends Problem {
       })
 
     val mappings = parseMappings()
-    println(mappings)
 
     val result = seeds.flatMap { seedPair =>
       mappings.foldLeft(Seq(seedPair)) { (inputRanges, mapping) =>
-        println(s"Input Ranges: $inputRanges")
         inputRanges.flatMap {
           case (inputStart, inputLength) =>
             def helper(inputStart: Long, inputLength: Long, ranges: Vector[Range], acc: Seq[(Long, Long)]): Seq[(Long, Long)] = {
@@ -149,7 +147,7 @@ object Day5 {
   def main(args: Array[String]): Unit = {
     val value = Files.lines("day5.txt")
     Day5(value).solve1()
-    Day5(value).solve2()
+    time(Day5(value).solve2)
   }
 
 }
