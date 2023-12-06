@@ -7,12 +7,7 @@ case class Day6(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val races = parse1(lines)
 
-    val result = races.map { race =>
-      val distances = (0.toLong to race.time)
-        .map(i => i * (race.time - i))
-        .filter(d => d > race.distance)
-      distances.size
-    }.product
+    val result = races.map { race => race.waysToWin }.product
 
     println(s"Result 1: $result")
   }
@@ -20,13 +15,9 @@ case class Day6(lines: Vector[String]) extends Problem {
   override def solve2(): Unit = {
     val race = parse2(lines)
 
-    val distances = (0.toLong to race.time)
-      .map(i => i * (race.time - i))
-      .filter(d => d > race.distance)
+    val result = race.waysToWin
 
-    val result = distances.size
-
-    println(s"Result 1: $result")
+    println(s"Result 2: $result")
   }
 
   private def parse1(lines: Vector[String]) = {
@@ -47,7 +38,11 @@ case class Day6(lines: Vector[String]) extends Problem {
 
 }
 
-case class Race(time: Long, distance: Long)
+case class Race(time: Long, distance: Long) {
+
+  lazy val waysToWin: Long = Math.floor(Math.sqrt(time * time - 4 * distance)).toLong
+
+}
 
 object Day6 {
   def main(args: Array[String]): Unit = {
