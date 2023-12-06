@@ -31,7 +31,7 @@ case class Day6(lines: Vector[String]) extends Problem {
   }
 
   private def parse2(lines: Vector[String]) = {
-    val parts = lines.map(line => line.split("\\s+").tail.reduce(_+_).toLong)
+    val parts = lines.map(line => line.split("\\s+").tail.mkString("").toLong)
 
     Race(parts(0), parts(1))
   }
@@ -40,7 +40,13 @@ case class Day6(lines: Vector[String]) extends Problem {
 
 case class Race(time: Long, distance: Long) {
 
-  lazy val waysToWin: Long = Math.floor(Math.sqrt(time * time - 4 * distance)).toLong
+  lazy val waysToWin: Long = {
+    val x0 = (time - Math.sqrt(time * time - 4 * distance)) / 2
+    val x1 = (time + Math.sqrt(time * time - 4 * distance)) / 2
+
+    // The solution over-counts by 1
+    (Math.ceil(x1) - Math.floor(x0) - 1).toLong
+  }
 
 }
 
