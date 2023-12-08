@@ -92,7 +92,7 @@ case class Pair(left: String, right: String)
 object Day8 {
   def main(args: Array[String]): Unit = {
     val value = Files.lines("day8.txt")
-//    Day8(value).solve1()
+    Day8(value).solve1()
     Day8(value).solve2()
   }
 
