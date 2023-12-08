@@ -32,7 +32,7 @@ case class Day8(lines: Vector[String]) extends Problem {
     val mapping = parseMap
 
     @tailrec
-    def singlePathHelper(remainingDirections: String, currentLocation: String, distance: Long): (Long, String, String) = {
+    def singlePathHelper(remainingDirections: String, currentLocation: String, distance: Int): (Int, String, String) = {
       if (remainingDirections.isEmpty) singlePathHelper(directions, currentLocation, distance)
       else if (currentLocation.last == 'Z') {
         (distance, currentLocation, remainingDirections)
@@ -48,8 +48,8 @@ case class Day8(lines: Vector[String]) extends Problem {
     println(s"Initial results: ${initialResults.map(r => s"${r._1}").mkString(",")}")
 
     val result = initialResults.map {
-      case (x, _, _) => x / directions.length
-    }.product * directions.length
+      case (x, _, _) => x.toLong
+    }.reduce(lcm)
 
     println(s"Result 2: $result")
   }
@@ -70,6 +70,20 @@ case class Day8(lines: Vector[String]) extends Problem {
       val lr = parts(1).replaceAll("[()]", "").split(", ")
       key -> Pair(left = lr(0), right = lr(1))
     })
+  }
+
+  private def lcm(x: Long, y: Long) = {
+    x * (y / gcd(x, y))
+  }
+
+  private def gcd(x: Long, y: Long): Long = {
+    @tailrec
+    def helper(a: Long, b: Long): Long = {
+      if (b == 0) a
+      else helper(b, a % b)
+    }
+
+    helper(Math.max(x, y), Math.min(x, y))
   }
 }
 
