@@ -3,28 +3,30 @@ package intcode
 
 import scala.annotation.tailrec
 
-case class IntcodeComputer(program: Vector[Int], input: () => Int = () => 42, output: Int => Unit = _ => ()) {
+case class IntcodeComputer(program: Vector[Int]) {
 
-  def execute(): Vector[Int] = {
+  def execute(input: LazyList[Int] = LazyList()): (Vector[Int], LazyList[Int]) = {
     @tailrec
-    def helper(pc: Int, memory: Vector[Int]): Vector[Int] = {
+    def helper(pc: Int, memory: Vector[Int], input: LazyList[Int], output: LazyList[Int]): (Vector[Int], LazyList[Int]) = {
 //      println(s"$pc, $memory")
 
       Instruction.fromInt(memory(pc)) match {
-        case Instruction(1, positionModes) => helper(pc + 4, add(pc, memory, positionModes))
-        case Instruction(2, positionModes) => helper(pc + 4, multiply(pc, memory, positionModes))
-        case Instruction(3, positionModes) => helper(pc + 2, read(pc, memory, positionModes))
-        case Instruction(4, positionModes) => helper(pc + 2, write(pc, memory, positionModes))
-        case Instruction(5, positionModes) => helper(jumpTrue(pc, memory, positionModes), memory)
-        case Instruction(6, positionModes) => helper(jumpFalse(pc, memory, positionModes), memory)
-        case Instruction(7, positionModes) => helper(pc + 4, lessThan(pc, memory, positionModes))
-        case Instruction(8, positionModes) => helper(pc + 4, equal(pc, memory, positionModes))
-        case Instruction(99, _) => memory
+        case Instruction(1, positionModes) => helper(pc + 4, add(pc, memory, positionModes), input, output)
+        case Instruction(2, positionModes) => helper(pc + 4, multiply(pc, memory, positionModes), input, output)
+        case Instruction(3, positionModes) =>
+          val (updatedMemory, remainingInput) = read(pc, memory, positionModes, input)
+          helper(pc + 2, updatedMemory, remainingInput, output)
+        case Instruction(4, positionModes) => helper(pc + 2, memory, input, write(pc, memory, positionModes, output))
+        case Instruction(5, positionModes) => helper(jumpTrue(pc, memory, positionModes), memory, input, output)
+        case Instruction(6, positionModes) => helper(jumpFalse(pc, memory, positionModes), memory, input, output)
+        case Instruction(7, positionModes) => helper(pc + 4, lessThan(pc, memory, positionModes), input, output)
+        case Instruction(8, positionModes) => helper(pc + 4, equal(pc, memory, positionModes), input, output)
+        case Instruction(99, _) => (memory, output)
         case x => throw new IllegalStateException(s"Illegal opcode $x at $pc. State: $memory")
       }
     }
 
-    helper(0, program)
+    helper(0, program, input, LazyList())
   }
 
   private def add(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
@@ -35,13 +37,15 @@ case class IntcodeComputer(program: Vector[Int], input: () => Int = () => 42, ou
     memory.updated(positionModes(2).dest(pc, memory), positionModes(0)(pc, memory) * positionModes(1)(pc, memory))
   }
 
-  private def read(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
-    memory.updated(positionModes(0).dest(pc, memory), input())
+  private def read(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode], input: LazyList[Int]): (Vector[Int], LazyList[Int]) = {
+    input match {
+      case next #:: remainder => (memory.updated(positionModes(0).dest(pc, memory), next), remainder)
+      case LazyList() => throw new IllegalStateException(s"No more input. $pc, $memory")
+    }
   }
 
-  private def write(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
-    output(positionModes(0)(pc, memory))
-    memory
+  private def write(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode], previousOutput: LazyList[Int]): LazyList[Int] = {
+    previousOutput #::: LazyList(positionModes(0)(pc, memory))
   }
 
   private def jumpTrue(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {

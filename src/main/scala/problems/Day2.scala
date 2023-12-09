@@ -10,9 +10,10 @@ case class Day2(lines: Vector[String]) extends Problem {
     val updatedProgram = program.updated(1, 12).updated(2, 2)
     val computer = IntcodeComputer(updatedProgram)
 
-    val finalState = computer.execute()
+    val (finalState, _) = computer.execute()
     val result = finalState(0)
 
+    // Should be 4570637
     println(s"Result 1: $result")
   }
 
@@ -28,12 +29,13 @@ case class Day2(lines: Vector[String]) extends Problem {
       case (i, j) =>
         val updatedProgram = program.updated(1, i).updated(2, j)
         val computer = IntcodeComputer(updatedProgram)
-        val finalState = computer.execute()
+        val (finalState, _) = computer.execute()
         finalState(0) == 19690720
     }.get
 
     val result = 100 * resultPair._1 + resultPair._2
 
+    // Should be 5485
     println(s"Result 2: $result")
   }
 

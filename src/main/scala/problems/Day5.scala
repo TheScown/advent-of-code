@@ -7,20 +7,22 @@ import lib.{Files, Problem}
 case class Day5(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
-    val computer = IntcodeComputer(program, () => 1, println)
+    val computer = IntcodeComputer(program)
 
-    computer.execute()
+    val (_, output) = computer.execute(LazyList(1))
 
-    println(s"Result 1: See STDOUT")
+    // Should be 9025675
+    println(s"Result 1: ${output.last}")
   }
 
   override def solve2(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
-    val computer = IntcodeComputer(program, () => 5, println)
+    val computer = IntcodeComputer(program)
 
-    computer.execute()
+    val (_, output) = computer.execute(LazyList(5))
 
-    println(s"Result 2: See STDOUT")
+    // Should be 11981754
+    println(s"Result 2: ${output.head}")
   }
 
 }
