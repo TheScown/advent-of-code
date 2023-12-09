@@ -7,7 +7,7 @@ import lib.{Files, Problem}
 case class Day2(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
-    val updatedProgram = program.updated(1, 12).updated(2, 2)
+    val updatedProgram = program.updated(1, 12.toLong).updated(2, 2.toLong)
     val computer = IntcodeComputer(updatedProgram)
 
     val (finalState, _) = computer.execute().head
@@ -27,7 +27,7 @@ case class Day2(lines: Vector[String]) extends Problem {
 
     val resultPair = inputs.find {
       case (i, j) =>
-        val updatedProgram = program.updated(1, i).updated(2, j)
+        val updatedProgram = program.updated(1, i.toLong).updated(2, j.toLong)
         val computer = IntcodeComputer(updatedProgram)
         val (finalState, _) = computer.execute().head
         finalState(0) == 19690720

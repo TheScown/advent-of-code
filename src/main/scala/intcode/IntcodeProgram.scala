@@ -3,11 +3,11 @@ package intcode
 
 object IntcodeProgram {
 
-  def fromString(input: String): Vector[Int] = {
-    input.split(",").map(_.toInt).toVector
+  def fromString(input: String): Vector[Long] = {
+    input.split(",").map(_.toLong).toVector
   }
 
-  def fromLines(input: Vector[String]): Vector[Int] = {
+  def fromLines(input: Vector[String]): Vector[Long] = {
     IntcodeProgram.fromString(input.mkString(""))
   }
 

@@ -13,7 +13,7 @@ case class Day7(lines: Vector[String]) extends Problem {
 
     val result = permutations.map { phases =>
       @tailrec
-      def helper(remainingPhases: IndexedSeq[Int], nextInput: Int = 0): Int = {
+      def helper(remainingPhases: IndexedSeq[Int], nextInput: Long = 0): Long = {
         if (remainingPhases.isEmpty) return nextInput
 
         val phase = remainingPhases.head
@@ -28,6 +28,7 @@ case class Day7(lines: Vector[String]) extends Problem {
       helper(phases)
     }.max
 
+    // Should be 21760
     println(s"Result 1: $result")
   }
 
@@ -40,16 +41,16 @@ case class Day7(lines: Vector[String]) extends Problem {
 
       val computers = phases.map { phase => (phase, IntcodeComputer(program)) }
 
-      var lastOutputVar: () => LazyList[Int] = () => throw new IllegalStateException(s"First computer reading before init")
+      var lastOutputVar: () => LazyList[Long] = () => throw new IllegalStateException(s"First computer reading before init")
       val (firstPhase, firstComputer) = computers.head
-      val firstInputStream = firstPhase #:: 0 #:: (() => {
+      val firstInputStream = firstPhase.toLong #:: 0.toLong #:: (() => {
         println("First computer getting additional input")
         lastOutputVar()
       })()
       val firstOutputStream = firstComputer.execute(firstInputStream).map(_._2).filter(_.isDefined).map(_.get)
 
       @tailrec
-      def helper(remainingComputers: IndexedSeq[(Int, IntcodeComputer)], previousOutput: LazyList[Int]): LazyList[Int] = {
+      def helper(remainingComputers: IndexedSeq[(Int, IntcodeComputer)], previousOutput: LazyList[Long]): LazyList[Long] = {
         if (remainingComputers.isEmpty) previousOutput
         else {
           val (phase, computer) = remainingComputers.head
@@ -61,6 +62,7 @@ case class Day7(lines: Vector[String]) extends Problem {
       lastOutputVar().last
     }.max
 
+    // Should be 69816958
     println(s"Result 2: $result")
   }
 }
