@@ -1,8 +1,6 @@
 package space.scown.adventofcode2019
 package intcode
 
-import scala.annotation.tailrec
-
 case class IntcodeComputer(program: Vector[Int]) {
 
   def execute(input: LazyList[Int] = LazyList()): LazyList[(Vector[Int], Option[Int])] = {
