@@ -9,20 +9,23 @@ case class Day5(lines: Vector[String]) extends Problem {
     val program = IntcodeProgram.fromLines(lines)
     val computer = IntcodeComputer(program)
 
-    val (_, output) = computer.execute(LazyList(1))
+    val (_, output) = computer.execute(LazyList(1)).find {
+      case (_, Some(x)) => x != 0
+      case _ => false
+    }.get
 
     // Should be 9025675
-    println(s"Result 1: ${output.last}")
+    println(s"Result 1: ${output.get}")
   }
 
   override def solve2(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
     val computer = IntcodeComputer(program)
 
-    val (_, output) = computer.execute(LazyList(5))
+    val (_, output) = computer.execute(LazyList(5)).head
 
     // Should be 11981754
-    println(s"Result 2: ${output.head}")
+    println(s"Result 2: ${output.get}")
   }
 
 }
