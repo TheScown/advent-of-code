@@ -8,13 +8,17 @@ case class IntcodeComputer(program: Vector[Int], input: () => Int = () => 42, ou
   def execute(): Vector[Int] = {
     @tailrec
     def helper(pc: Int, memory: Vector[Int]): Vector[Int] = {
-      println(s"$pc, $memory")
+//      println(s"$pc, $memory")
 
       Instruction.fromInt(memory(pc)) match {
         case Instruction(1, positionModes) => helper(pc + 4, add(pc, memory, positionModes))
         case Instruction(2, positionModes) => helper(pc + 4, multiply(pc, memory, positionModes))
         case Instruction(3, positionModes) => helper(pc + 2, read(pc, memory, positionModes))
         case Instruction(4, positionModes) => helper(pc + 2, write(pc, memory, positionModes))
+        case Instruction(5, positionModes) => helper(jumpTrue(pc, memory, positionModes), memory)
+        case Instruction(6, positionModes) => helper(jumpFalse(pc, memory, positionModes), memory)
+        case Instruction(7, positionModes) => helper(pc + 4, lessThan(pc, memory, positionModes))
+        case Instruction(8, positionModes) => helper(pc + 4, equal(pc, memory, positionModes))
         case Instruction(99, _) => memory
         case x => throw new IllegalStateException(s"Illegal opcode $x at $pc. State: $memory")
       }
@@ -38,6 +42,30 @@ case class IntcodeComputer(program: Vector[Int], input: () => Int = () => 42, ou
   private def write(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
     output(positionModes(0)(pc, memory))
     memory
+  }
+
+  private def jumpTrue(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
+    val test = positionModes(0)(pc, memory)
+
+    if (test != 0) positionModes(1)(pc, memory)
+    else pc + 3
+  }
+
+  private def jumpFalse(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
+    val test = positionModes(0)(pc, memory)
+
+    if (test == 0) positionModes(1)(pc, memory)
+    else pc + 3
+  }
+
+  private def lessThan(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
+    val condition = positionModes(0)(pc, memory) < positionModes(1)(pc, memory)
+    memory.updated(positionModes(2).dest(pc, memory), if (condition) 1 else 0)
+  }
+
+  private def equal(pc: Int, memory: Vector[Int], positionModes: Vector[PositionMode]) = {
+    val condition = positionModes(0)(pc, memory) == positionModes(1)(pc, memory)
+    memory.updated(positionModes(2).dest(pc, memory), if (condition) 1 else 0)
   }
 }
 
@@ -80,7 +108,7 @@ case class Immediate(offset: Int) extends PositionMode {
   }
 
   override def dest(pc: Int, memory: Vector[Int]): Int = {
-    pc + offset
+    throw new IllegalStateException(s"Attempting to write in immediate mode. $pc + $offset, $memory")
   }
 }
 

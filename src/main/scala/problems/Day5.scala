@@ -15,7 +15,12 @@ case class Day5(lines: Vector[String]) extends Problem {
   }
 
   override def solve2(): Unit = {
+    val program = IntcodeProgram.fromLines(lines)
+    val computer = IntcodeComputer(program, () => 5, println)
 
+    computer.execute()
+
+    println(s"Result 2: See STDOUT")
   }
 
 }
