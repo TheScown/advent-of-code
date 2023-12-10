@@ -98,6 +98,34 @@ case class Day10(grid: Vector[Vector[Char]]) extends Problem {
     println(s"Result 2: ${insideLoop.size}")
   }
 
+  def picksShoelace(): Unit = {
+    val connectedPipes = connectedPipeAddresses(startingAddress)
+    val previousAddress = connectedPipes(1)
+
+    @tailrec
+    def helper(slow: (Int, Int), previousSlow: (Int, Int), pipeAddresses: Vector[(Int, Int)]): Vector[(Int, Int)] = {
+      if (pipeAddresses.nonEmpty && slow == startingAddress) pipeAddresses
+      else {
+        val nextSlow = connectedPipeAddresses(slow).find(a => a != previousSlow).get
+
+        helper(nextSlow, slow, pipeAddresses :+ slow)
+      }
+    }
+
+    val pipeAddresses = helper(startingAddress, previousAddress, Vector())
+
+    // Shoelace formula: the sum of the determinants of pairs of points in order is twice the area
+    val doubleArea = pipeAddresses.zip(pipeAddresses.tail :+ pipeAddresses.head).map { pair =>
+      val ((r1, c1), (r2, c2)) = pair
+      r1 * c2 - r2 * c1
+    }.sum
+
+    // Pick's theorem: A = i + b / 2 - 1. A is half double area and b is pipeAddresses.size
+    val result = (doubleArea + 2 - pipeAddresses.size) / 2
+
+    println(s"Result 2: $result")
+  }
+
   private def adjacentCells(address: (Int, Int)) = {
     val (row, column) = address
 
@@ -172,7 +200,8 @@ object Day10 {
   def main(args: Array[String]): Unit = {
     val value = Files.grid("day10.txt")
     Day10(value).solve1()
-    time(Day10(value).solve2)
+    time(Day10(value).picksShoelace)
+//    time(Day10(value).solve2)
   }
 
 }
