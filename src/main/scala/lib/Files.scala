@@ -12,4 +12,8 @@ object Files {
   def pagedSequence(filename: String): PagedSeq[Char] = {
     PagedSeq.fromSource(Source.fromResource(filename))
   }
+
+  def grid(filename: String, delimiterPattern: String = ""): Vector[Vector[Char]] = {
+    Files.lines(filename).map(l => l.split(delimiterPattern).map(_.head).toVector)
+  }
 }

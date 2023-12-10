@@ -10,7 +10,7 @@ object Timer {
     f()
     val end = System.nanoTime()
     val duration = TimeUnit.MICROSECONDS.convert(end - start, TimeUnit.NANOSECONDS)
-    println(s"Duration: $duration")
+    println(s"Duration: $duration µs")
   }
 
 }
