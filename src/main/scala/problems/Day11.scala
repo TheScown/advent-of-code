@@ -4,6 +4,10 @@ package problems
 import intcode.{IntcodeComputer, IntcodeProgram}
 import lib.{Files, Problem}
 
+import java.awt.{Color, FlowLayout, Image}
+import java.awt.image.BufferedImage
+import javax.swing.{ImageIcon, JFrame, JLabel, WindowConstants}
+
 case class Day11(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
@@ -37,8 +41,43 @@ case class Day11(lines: Vector[String]) extends Problem {
 
     val finalState = robotOutputVar().last._2
 
-    // TODO printout the message represented by finalState
-    println(s"Result 2: ${finalState.size}")
+    val paintedKeys = finalState.keySet
+    val minX = paintedKeys.minBy(_._1)._1
+    val maxX = paintedKeys.maxBy(_._1)._1
+    val minY = paintedKeys.minBy(_._2)._2
+    val maxY = paintedKeys.maxBy(_._2)._2
+
+    val width = maxX - minX + 1
+    val height = maxY - minY + 1
+
+    val translateX = -minX
+    val translateY = -minY
+
+    val image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+
+    for {
+      x <- minX to maxX
+      y <- minY to maxY
+    } {
+      val colour = if (finalState.getOrElse((x, y), 0) == 1) Color.WHITE.getRGB else Color.BLACK.getRGB
+      image.setRGB(x + translateX, height - 1 - (y + translateY), colour)
+    }
+
+    renderImage(width, height, image)
+  }
+
+  private def renderImage(width: Int, height: Int, image: BufferedImage): Unit = {
+    val frame = new JFrame()
+    // Scale the image up so it's legible
+    val icon = new ImageIcon(image.getScaledInstance(width * 10, height * 10, Image.SCALE_DEFAULT))
+    frame.setLayout(new FlowLayout())
+    // Need to allow height for the title bar
+    frame.setSize(width * 10, height * 10 + 50)
+    val label = new JLabel()
+    label.setIcon(icon)
+    frame.add(label)
+    frame.setVisible(true)
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
   }
 }
 
