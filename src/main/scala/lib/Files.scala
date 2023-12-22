@@ -14,6 +14,10 @@ object Files {
   }
 
   def grid(filename: String, delimiterPattern: String = ""): Vector[Vector[Char]] = {
-    Files.lines(filename).map(l => l.split(delimiterPattern).map(_.head).toVector)
+    grid(Files.lines(filename), delimiterPattern)
+  }
+
+  def grid(lines: Vector[String], delimiterPattern: String): Vector[Vector[Char]] = {
+    lines.map(l => l.split(delimiterPattern).map(_.head).toVector)
   }
 }
