@@ -9,8 +9,19 @@ object Timer {
     val start = System.nanoTime()
     f()
     val end = System.nanoTime()
-    val duration = TimeUnit.MICROSECONDS.convert(end - start, TimeUnit.NANOSECONDS)
-    println(s"Duration: $duration µs")
+    val duration = end - start
+
+    if (duration < 1000) {
+      println(s"Duration: $duration ns")
+    } else if (duration < 1_000_000) {
+      println(s"Duration: ${TimeUnit.MICROSECONDS.convert(duration, TimeUnit.NANOSECONDS)} µs")
+    } else if (duration < 5_000_000_000L) {
+      println(s"Duration: ${TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS)} ms")
+    } else {
+      println(s"Duration: ${TimeUnit.SECONDS.convert(duration, TimeUnit.NANOSECONDS)} s")
+    }
+
+
   }
 
 }
