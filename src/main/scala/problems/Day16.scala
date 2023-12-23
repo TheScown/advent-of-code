@@ -5,6 +5,7 @@ import lib.Timer.time
 import lib.{Files, Problem}
 
 import scala.annotation.tailrec
+import scala.collection.parallel.CollectionConverters._
 
 case class Day16(grid: Vector[Vector[Char]]) extends Problem {
 
@@ -17,9 +18,9 @@ case class Day16(grid: Vector[Vector[Char]]) extends Problem {
   }
 
   override def solve2(): Unit = {
-    val startingPositions = Set(Up, Right, Down, Left).flatMap(_.startingPositions(grid.size, grid(0).size))
+    val startingPositions = Vector(Up, Right, Down, Left).flatMap(_.startingPositions(grid.size, grid(0).size))
 
-    val result = startingPositions.map { input =>
+    val result = startingPositions.par.map { input =>
       val resultSet = search(Vector(input), Set())
       val positionSet = resultSet.map(p => p._1)
       positionSet.size
