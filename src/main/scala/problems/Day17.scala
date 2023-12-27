@@ -11,13 +11,13 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
   override def solve1(): Unit = {
     val grid = charGrid.map(row => row.map(c => c.asDigit))
 
-    val queue = new mutable.PriorityQueue[QueueEntry]()
+    val queue = new mutable.PriorityQueue[Day17QueueEntry]()
     val target = (grid.size - 1, grid(0).size - 1)
 
     @tailrec
-    def helper(seen: Map[((Int, Int), Vector[(Int, Int)]), Int]): QueueEntry = {
+    def helper(seen: Map[((Int, Int), Vector[(Int, Int)]), Int]): Day17QueueEntry = {
       queue.dequeue() match {
-        case entry@QueueEntry(address@(row, column), score, history) =>
+        case entry@Day17QueueEntry(address@(row, column), score, history) =>
           val relevantHistory = if (history.size >= 3) history.takeRight(3) else history
 
 //          println(s"$address, $score")
@@ -47,7 +47,7 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
                 case (r, c) =>
                   val newHistory = history :+ address
 
-                  queue.enqueue(QueueEntry((r, c), grid(r)(c) + score, newHistory))
+                  queue.enqueue(Day17QueueEntry((r, c), grid(r)(c) + score, newHistory))
               })
 
             helper(seen + ((address, relevantHistory) -> score))
@@ -55,7 +55,7 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
       }
     }
 
-    queue.enqueue(QueueEntry((0, 0), 0, Vector()))
+    queue.enqueue(Day17QueueEntry((0, 0), 0, Vector()))
 
     val result = helper(Map())
 
@@ -66,13 +66,13 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
   override def solve2(): Unit = {
     val grid = charGrid.map(row => row.map(c => c.asDigit))
 
-    val queue = new mutable.PriorityQueue[QueueEntry]()
+    val queue = new mutable.PriorityQueue[Day17QueueEntry]()
     val target = (grid.size - 1, grid(0).size - 1)
 
     @tailrec
-    def helper(seen: Map[((Int, Int), Vector[(Int, Int)]), Int]): QueueEntry = {
+    def helper(seen: Map[((Int, Int), Vector[(Int, Int)]), Int]): Day17QueueEntry = {
       queue.dequeue() match {
-        case entry@QueueEntry(address@(row, column), score, history) =>
+        case entry@Day17QueueEntry(address@(row, column), score, history) =>
           val relevantHistory = if (history.size >= 10) history.takeRight(10) else history
 
 //          println(s"$address, $score")
@@ -113,7 +113,7 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
                 case (r, c) =>
                   val newHistory = history :+ address
 
-                  queue.enqueue(QueueEntry((r, c), grid(r)(c) + score, newHistory))
+                  queue.enqueue(Day17QueueEntry((r, c), grid(r)(c) + score, newHistory))
               })
 
             helper(seen + ((address, relevantHistory) -> score))
@@ -121,7 +121,7 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
       }
     }
 
-    queue.enqueue(QueueEntry((0, 0), 0, Vector()))
+    queue.enqueue(Day17QueueEntry((0, 0), 0, Vector()))
 
     val result = helper(Map())
 
@@ -130,8 +130,8 @@ case class Day17(charGrid: Vector[Vector[Char]]) extends Problem {
   }
 }
 
-case class QueueEntry(address: (Int, Int), score: Int, history: Vector[(Int, Int)]) extends Ordered[QueueEntry] {
-  override def compare(that: QueueEntry): Int = that.score - this.score
+private case class Day17QueueEntry(address: (Int, Int), score: Int, history: Vector[(Int, Int)]) extends Ordered[Day17QueueEntry] {
+  override def compare(that: Day17QueueEntry): Int = that.score - this.score
 }
 
 object Day17 {
