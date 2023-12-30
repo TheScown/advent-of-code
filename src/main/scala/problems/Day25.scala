@@ -10,27 +10,26 @@ import scala.util.Random
 case class Day25(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val graph = parse
+    val edgeCount = graph.edgeCount
 
-    println(s"Graph size: ${graph.nodes.size}, ${graph.edges.size}")
-
-    val random = new Random()
+    println(s"Graph size: ${graph.nodes.size}, $edgeCount")
 
     @tailrec
     def helper(modifiedGraph: Day25Graph, attempt: Int, startTime: Long): Day25Graph = {
       if (modifiedGraph.nodes.size == 2) {
         println(s"Duration: ${System.currentTimeMillis() - startTime}ms")
 
-        if (modifiedGraph.edges.size == 3) {
+        if (modifiedGraph.edgeCount == 3) {
           println(s"Attempt: $attempt, Correct cut found")
           modifiedGraph
         }
         else {
-          println(s"Attempt: $attempt, Cut of size ${modifiedGraph.edges.size} found - retrying")
+          println(s"Attempt: $attempt, Cut of size ${modifiedGraph.edgeCount} found - retrying")
           helper(graph, attempt + 1, System.currentTimeMillis())
         }
       }
       else {
-        helper(modifiedGraph - modifiedGraph.edges(random.nextInt(modifiedGraph.edges.size)), attempt, startTime)
+        helper(modifiedGraph - modifiedGraph.randomEdge(), attempt, startTime)
       }
     }
 
@@ -65,38 +64,52 @@ case class Day25(lines: Vector[String]) extends Problem {
       }
     }
 
-    helper(lines, Day25Graph(Set(), Vector()))
+    helper(lines, Day25Graph(Set(), Map()))
   }
 }
 
-case class Day25Graph(nodes: Set[Day25Node], edges: Vector[Day25Edge]) {
+case class Day25Graph(nodes: Set[Day25Node], edges: Map[Day25Node, Vector[Day25Edge]]) {
+
+  private val random = new Random()
 
   def +(node: Day25Node): Day25Graph = copy(nodes = nodes + node)
   def ++(newNodes: Seq[Day25Node]): Day25Graph = copy(nodes = nodes ++ newNodes)
-  def addEdges(newEdges: Seq[Day25Edge]): Day25Graph = copy(edges = edges ++ newEdges)
+  def addEdges(newEdges: Seq[Day25Edge]): Day25Graph = newEdges.foldLeft(this)((g, e) => g + e)
 
   def +(edge: Day25Edge): Day25Graph = copy(
-    edges = edges :+ edge
+    edges = edges + (edge.v1 -> (edges.getOrElse(edge.v1, Vector()) :+ edge)) + (edge.v2 -> (edges.getOrElse(edge.v2, Vector()) :+ edge))
   )
 
-  def -(edge: Day25Edge): Day25Graph = {
-//    println(s"${edges.size}")
+  lazy val edgeCount: Int = edges.values.map(edges => edges.size).sum / 2
 
+  def randomEdge(): Day25Edge = {
+    val randomNode = nodes.toVector(random.nextInt(nodes.size))
+    val edgesForRandomNode = edges(randomNode)
+    edgesForRandomNode(random.nextInt(edgesForRandomNode.size))
+  }
+
+  def -(edge: Day25Edge): Day25Graph = {
     if ((edge.v1.label intersect edge.v2.label).nonEmpty) {
       throw new IllegalStateException(s"We've combined nodes twice: ${edge.v1.label} and ${edge.v2.label}")
     }
 
     val newNode = Day25Node(edge.v1.label ++ edge.v2.label)
 
-    val matchingEdges = edges.filter(e => e == edge)
-    val edgesToChange = edges.filter(e => e != edge && (e.v1 == edge.v1 || e.v2 == edge.v1 || e.v1 == edge.v2 || e.v2 == edge.v2))
+    val matchingEdges = edges(edge.v1) ++ edges(edge.v2)
+    val edgesToChange = matchingEdges.filterNot(e => e == edge)
 
     val newEdges = edgesToChange.map { e =>
       if (e.v1 == edge.v1 || e.v1 == edge.v2) Day25Edge(newNode, e.v2)
       else Day25Edge(e.v1, newNode)
     }
 
-    val updatedEdges = edges.filterNot(e => matchingEdges.contains(e)).filterNot(e => edgesToChange.contains(e)) ++ newEdges
+    val groupedNewEdges = newEdges.groupBy(e => if (e.v1 == newNode) e.v2 else e.v1)
+    val updatedEntries = groupedNewEdges
+      .map({
+        case (updatedNode, updatedEdges) => updatedNode -> (edges(updatedNode).filterNot(e => edgesToChange.contains(e)) ++ updatedEdges)
+      })
+
+    val updatedEdges = edges - edge.v1 - edge.v2 + (newNode -> newEdges) ++ updatedEntries
     copy(
       nodes = nodes - edge.v1 - edge.v2 + newNode,
       edges = updatedEdges
