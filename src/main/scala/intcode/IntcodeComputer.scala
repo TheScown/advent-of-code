@@ -11,10 +11,15 @@ case class IntcodeComputer(program: Vector[Long]) {
         case Instruction(1, positionModes) => helper(pc + 4, add(pc, memory, positionModes), relativeBase, outputs)
         case Instruction(2, positionModes) => helper(pc + 4, multiply(pc, memory, positionModes), relativeBase, outputs)
         case Instruction(3, positionModes) => RequiresInput(outputs, next => {
+//          println(s"Reading $next")
           val updatedMemory = readIn(pc, memory, positionModes, next)
           helper(pc + 2, updatedMemory, relativeBase, Vector())
         })
-        case Instruction(4, positionModes) => helper(pc + 2, memory, relativeBase, outputs :+ positionModes(0)(pc, memory))
+        case Instruction(4, positionModes) => {
+          val outputValue = positionModes(0)(pc, memory)
+//          println(s"Output value $outputValue")
+          helper(pc + 2, memory, relativeBase, outputs :+ outputValue)
+        }
         case Instruction(5, positionModes) => helper(jumpTrue(pc, memory, positionModes), memory, relativeBase, outputs)
         case Instruction(6, positionModes) => helper(jumpFalse(pc, memory, positionModes), memory, relativeBase, outputs)
         case Instruction(7, positionModes) => helper(pc + 4, lessThan(pc, memory, positionModes), relativeBase, outputs)
