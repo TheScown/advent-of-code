@@ -1,47 +1,42 @@
 package space.scown.adventofcode2019
 package problems
 
-import intcode.{IntcodeComputer, IntcodeProgram}
+import intcode.{IntcodeComputer, IntcodeProgram, Output, RequiresInput, Termination}
 import lib.{Files, Problem}
 
 import java.awt.{Color, FlowLayout, Image}
 import java.awt.image.BufferedImage
 import javax.swing.{ImageIcon, JFrame, JLabel, WindowConstants}
+import scala.annotation.tailrec
 
 case class Day11(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
 
-    var robotOutputVar: () => LazyList[(Long, Map[(Int, Int), Long])] = () => throw new IllegalStateException(s"Attempting to read too early")
-
     val computer = IntcodeComputer(program)
-    val computerOutput = computer.execute(0.toLong #:: robotOutputVar().map(_._1)).map(_._2).filter(_.isDefined)
+    val computerOutput = computer.execute() match {
+      case RequiresInput(_, continue) => continue(0)
+    }
 
     val robot = Robot()
     val robotOutput = robot.run(computerOutput)
-    robotOutputVar = () => robotOutput
-
-    val finalState = robotOutputVar().last._2
 
     // Should be 2129
-    println(s"Result 1: ${finalState.size}")
+    println(s"Result 1: ${robotOutput.size}")
   }
 
   override def solve2(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
 
-    var robotOutputVar: () => LazyList[(Long, Map[(Int, Int), Long])] = () => throw new IllegalStateException(s"Attempting to read too early")
-
     val computer = IntcodeComputer(program)
-    val computerOutput = computer.execute(1.toLong #:: robotOutputVar().map(_._1)).map(_._2).filter(_.isDefined)
+    val computerOutput = computer.execute() match {
+      case RequiresInput(_, continue) => continue(1)
+    }
 
     val robot = Robot()
     val robotOutput = robot.run(computerOutput)
-    robotOutputVar = () => robotOutput
 
-    val finalState = robotOutputVar().last._2
-
-    val paintedKeys = finalState.keySet
+    val paintedKeys = robotOutput.keySet
     val minX = paintedKeys.minBy(_._1)._1
     val maxX = paintedKeys.maxBy(_._1)._1
     val minY = paintedKeys.minBy(_._2)._2
@@ -59,7 +54,7 @@ case class Day11(lines: Vector[String]) extends Problem {
       x <- minX to maxX
       y <- minY to maxY
     } {
-      val colour = if (finalState.getOrElse((x, y), 0) == 1) Color.WHITE.getRGB else Color.BLACK.getRGB
+      val colour = if (robotOutput.getOrElse((x, y), 0) == 1) Color.WHITE.getRGB else Color.BLACK.getRGB
       image.setRGB(x + translateX, height - 1 - (y + translateY), colour)
     }
 
@@ -83,25 +78,33 @@ case class Day11(lines: Vector[String]) extends Problem {
 
 case class Robot() {
 
-  def run(input: LazyList[Option[Long]]): LazyList[(Long, Map[(Int, Int), Long])] = {
-    def robot(currentPosition: (Int, Int), facing: Direction, mapping: Map[(Int, Int), Long], input: LazyList[Option[Long]], count: Int): LazyList[(Long, Map[(Int, Int), Long])] = {
+  def run(output: Output): Map[(Int, Int), Long] = {
+    @tailrec
+    def robot(currentPosition: (Int, Int), facing: Direction, mapping: Map[(Int, Int), Long], output: Output, count: Int): Map[(Int, Int), Long] = {
       println(s"ROBOT: $currentPosition, $facing, $count")
-      input match {
-        case Some(nextColour) #:: Some(nextDirection) #:: remainingInput =>
-//          println(s"$currentPosition")
-          println(s"$nextColour,$nextDirection")
-          val nextFacing = facing + nextDirection
-          val nextPosition = nextFacing.nextPosition(currentPosition._1, currentPosition._2)
-          (mapping.getOrElse(nextPosition, 0.toLong), mapping) #:: robot(nextPosition, nextFacing, mapping + (currentPosition -> nextColour), remainingInput, count + 1)
-        case LazyList() =>
-          println("Robot bailing out")
-          LazyList((0, mapping))
-        case remainingInput =>
-          robot(currentPosition, facing, mapping, remainingInput, count)
+      if (output.outputs.isEmpty) {
+        println("Robot bailing out")
+        mapping
+      }
+      else {
+        output.outputs match {
+          case Seq(nextColour, nextDirection) =>
+            println(s"$nextColour,$nextDirection")
+            val nextFacing = facing + nextDirection
+            val nextPosition = nextFacing.nextPosition(currentPosition._1, currentPosition._2)
+            output match {
+              case RequiresInput(_, continue) =>
+                val nextOutput = continue(mapping.getOrElse(nextPosition, 0.toLong))
+                robot(nextPosition, nextFacing, mapping + (currentPosition -> nextColour), nextOutput, count + 1)
+              case Termination(_, _) =>
+                println("Robot bailing out")
+                mapping
+            }
+        }
       }
     }
 
-    robot((0, 0), Up, Map(), input, 0)
+    robot((0, 0), Up, Map(), output, 0)
   }
 
 }

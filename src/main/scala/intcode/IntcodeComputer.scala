@@ -3,29 +3,29 @@ package intcode
 
 case class IntcodeComputer(program: Vector[Long]) {
 
-  def execute(input: LazyList[Long] = LazyList()): LazyList[(Memory, Option[Long])] = {
-    def helper(pc: Int, memory: Memory, input: LazyList[Long], relativeBase: Int): LazyList[(Memory, Option[Long])] = {
+  def execute(): Output = {
+    def helper(pc: Int, memory: Memory, relativeBase: Int, outputs: Seq[Long]): Output = {
 //      println(s"$pc, $relativeBase, $memory")
 
       Instruction.fromInt(memory(pc).toInt, relativeBase) match {
-        case Instruction(1, positionModes) => helper(pc + 4, add(pc, memory, positionModes), input, relativeBase)
-        case Instruction(2, positionModes) => helper(pc + 4, multiply(pc, memory, positionModes), input, relativeBase)
-        case Instruction(3, positionModes) =>
-          val (updatedMemory, remainingInput) = readIn(pc, memory, positionModes, input)
-          helper(pc + 2, updatedMemory, remainingInput, relativeBase)
-        case Instruction(4, positionModes) =>
-          (memory, Some(positionModes(0)(pc, memory))) #:: helper(pc + 2, memory, input, relativeBase)
-        case Instruction(5, positionModes) => helper(jumpTrue(pc, memory, positionModes), memory, input, relativeBase)
-        case Instruction(6, positionModes) => helper(jumpFalse(pc, memory, positionModes), memory, input, relativeBase)
-        case Instruction(7, positionModes) => helper(pc + 4, lessThan(pc, memory, positionModes), input, relativeBase)
-        case Instruction(8, positionModes) => helper(pc + 4, equal(pc, memory, positionModes), input, relativeBase)
-        case Instruction(9, positionModes) => helper(pc + 2, memory, input, updateRelativeBase(pc, memory, positionModes, relativeBase))
-        case Instruction(99, _) => LazyList((memory, None))
+        case Instruction(1, positionModes) => helper(pc + 4, add(pc, memory, positionModes), relativeBase, outputs)
+        case Instruction(2, positionModes) => helper(pc + 4, multiply(pc, memory, positionModes), relativeBase, outputs)
+        case Instruction(3, positionModes) => RequiresInput(outputs, next => {
+          val updatedMemory = readIn(pc, memory, positionModes, next)
+          helper(pc + 2, updatedMemory, relativeBase, Vector())
+        })
+        case Instruction(4, positionModes) => helper(pc + 2, memory, relativeBase, outputs :+ positionModes(0)(pc, memory))
+        case Instruction(5, positionModes) => helper(jumpTrue(pc, memory, positionModes), memory, relativeBase, outputs)
+        case Instruction(6, positionModes) => helper(jumpFalse(pc, memory, positionModes), memory, relativeBase, outputs)
+        case Instruction(7, positionModes) => helper(pc + 4, lessThan(pc, memory, positionModes), relativeBase, outputs)
+        case Instruction(8, positionModes) => helper(pc + 4, equal(pc, memory, positionModes), relativeBase, outputs)
+        case Instruction(9, positionModes) => helper(pc + 2, memory, updateRelativeBase(pc, memory, positionModes, relativeBase), outputs)
+        case Instruction(99, _) => Termination(outputs, memory)
         case x => throw new IllegalStateException(s"Illegal opcode $x at $pc. State: $memory")
       }
     }
 
-    helper(0, Memory(program), input, 0)
+    helper(0, Memory(program), 0, Vector())
   }
 
   private def add(pc: Int, memory: Memory, positionModes: Vector[PositionMode]): Memory = {
@@ -36,11 +36,8 @@ case class IntcodeComputer(program: Vector[Long]) {
     memory(positionModes(2).dest(pc, memory), positionModes(0)(pc, memory) * positionModes(1)(pc, memory))
   }
 
-  private def readIn(pc: Int, memory: Memory, positionModes: Vector[PositionMode], input: LazyList[Long]): (Memory, LazyList[Long]) = {
-    input match {
-      case next #:: remainder => (memory(positionModes(0).dest(pc, memory), next), remainder)
-      case LazyList() => throw new IllegalStateException(s"No more input. $pc, $memory")
-    }
+  private def readIn(pc: Int, memory: Memory, positionModes: Vector[PositionMode], next: Long): Memory = {
+    memory(positionModes(0).dest(pc, memory), next)
   }
 
   private def jumpTrue(pc: Int, memory: Memory, positionModes: Vector[PositionMode]): Int = {
@@ -84,4 +81,17 @@ case class Memory(memory: Vector[Long]) {
     Memory(toUpdate.updated(index, newValue))
   }
 
+}
+
+sealed trait Output {
+  val terminal: Boolean
+  val outputs: Seq[Long]
+}
+
+case class Termination(outputs: Seq[Long], memory: Memory) extends Output {
+  override val terminal: Boolean = true
+}
+
+case class RequiresInput(outputs: Seq[Long], continue: Long => Output) extends Output {
+  override val terminal: Boolean = false
 }

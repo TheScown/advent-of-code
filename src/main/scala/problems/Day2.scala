@@ -1,7 +1,7 @@
 package space.scown.adventofcode2019
 package problems
 
-import intcode.{IntcodeComputer, IntcodeProgram}
+import intcode.{IntcodeComputer, IntcodeProgram, Termination}
 import lib.{Files, Problem}
 
 case class Day2(lines: Vector[String]) extends Problem {
@@ -10,11 +10,13 @@ case class Day2(lines: Vector[String]) extends Problem {
     val updatedProgram = program.updated(1, 12.toLong).updated(2, 2.toLong)
     val computer = IntcodeComputer(updatedProgram)
 
-    val (finalState, _) = computer.execute().head
-    val result = finalState(0)
+    computer.execute() match {
+      case Termination(_, memory) =>
+        val result = memory(0)
 
-    // Should be 4570637
-    println(s"Result 1: $result")
+        // Should be 4570637
+        println(s"Result 1: $result")
+    }
   }
 
   override def solve2(): Unit = {
@@ -29,8 +31,9 @@ case class Day2(lines: Vector[String]) extends Problem {
       case (i, j) =>
         val updatedProgram = program.updated(1, i.toLong).updated(2, j.toLong)
         val computer = IntcodeComputer(updatedProgram)
-        val (finalState, _) = computer.execute().head
-        finalState(0) == 19690720
+        computer.execute() match {
+          case Termination(_, memory) => memory(0) == 19690720
+        }
     }.get
 
     val result = 100 * resultPair._1 + resultPair._2

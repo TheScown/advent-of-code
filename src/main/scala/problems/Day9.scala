@@ -1,7 +1,7 @@
 package space.scown.adventofcode2019
 package problems
 
-import intcode.{IntcodeComputer, IntcodeProgram}
+import intcode.{IntcodeComputer, IntcodeProgram, RequiresInput}
 import lib.{Files, Problem}
 
 case class Day9(lines: Vector[String]) extends Problem {
@@ -9,26 +9,24 @@ case class Day9(lines: Vector[String]) extends Problem {
     val program = IntcodeProgram.fromLines(lines)
     val computer = IntcodeComputer(program)
 
-    val output = computer.execute(LazyList(1))
-      .map(_._2)
-      .filter(_.isDefined)
-      .map(_.get)
+    val output = computer.execute() match {
+      case RequiresInput(_, continue) => continue(1)
+    }
 
     // Should be 3533056970
-    println(s"Result 1: ${output.last}")
+    println(s"Result 1: ${output.outputs.last}")
   }
 
   override def solve2(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
     val computer = IntcodeComputer(program)
 
-    val output = computer.execute(LazyList(2))
-      .map(_._2)
-      .filter(_.isDefined)
-      .map(_.get)
+    val output = computer.execute() match {
+      case RequiresInput(_, continue) => continue(2)
+    }
 
     // Should be 72852
-    println(s"Result 2: ${output.last}")
+    println(s"Result 2: ${output.outputs.last}")
   }
 }
 

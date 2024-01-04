@@ -1,7 +1,7 @@
 package space.scown.adventofcode2019
 package problems
 
-import intcode.{IntcodeComputer, IntcodeProgram}
+import intcode.{IntcodeComputer, IntcodeProgram, Output, RequiresInput}
 import lib.{Files, Problem}
 
 import scala.annotation.tailrec
@@ -19,10 +19,12 @@ case class Day7(lines: Vector[String]) extends Problem {
         val phase = remainingPhases.head
 
         val computer = IntcodeComputer(program)
-        computer.execute(LazyList(phase, nextInput)).head match {
-          case (_, Some(x)) => helper(remainingPhases.tail, x)
-          case (_, None) => throw new IllegalStateException(s"No output for phase $phase, input $nextInput")
-        }
+
+        val result = Seq(phase, nextInput).foldLeft(computer.execute()) { (output, value) => output match {
+          case RequiresInput(_, continue) => continue(value)
+        } }
+
+        helper(remainingPhases.tail, result.outputs.last)
       }
 
       helper(phases)
@@ -37,29 +39,30 @@ case class Day7(lines: Vector[String]) extends Problem {
     val permutations = (5 to 9).permutations
 
     val result = permutations.map { phases =>
-      println(s"Phases $phases")
+//      println(s"Phases $phases")
 
-      val computers = phases.map { phase => (phase, IntcodeComputer(program)) }
-
-      var lastOutputVar: () => LazyList[Long] = () => throw new IllegalStateException(s"First computer reading before init")
-      val (firstPhase, firstComputer) = computers.head
-      val firstInputStream = firstPhase.toLong #:: 0.toLong #:: (() => {
-        println("First computer getting additional input")
-        lastOutputVar()
-      })()
-      val firstOutputStream = firstComputer.execute(firstInputStream).map(_._2).filter(_.isDefined).map(_.get)
-
-      @tailrec
-      def helper(remainingComputers: IndexedSeq[(Int, IntcodeComputer)], previousOutput: LazyList[Long]): LazyList[Long] = {
-        if (remainingComputers.isEmpty) previousOutput
-        else {
-          val (phase, computer) = remainingComputers.head
-          helper(remainingComputers.tail, computer.execute(phase #:: previousOutput).map(_._2).filter(_.isDefined).map(_.get))
+      val computers = phases.map { phase =>
+        IntcodeComputer(program).execute() match {
+          case RequiresInput(_, continue) => continue(phase)
         }
       }
 
-      lastOutputVar = () => helper(computers.tail, firstOutputStream)
-      lastOutputVar().last
+      @tailrec
+      def cycleComputers(nextInput: Long, computers: Seq[Output], nextComputers: Seq[Output]): Long = {
+        if (computers.isEmpty) {
+          if (nextComputers.last.terminal) nextComputers.last.outputs.last
+          else cycleComputers(nextComputers.last.outputs.last, nextComputers, Vector())
+        }
+        else {
+          val nextOutput = computers.head match {
+            case RequiresInput(_, continue) => continue(nextInput)
+          }
+
+          cycleComputers(nextOutput.outputs.last, computers.tail, nextComputers :+ nextOutput)
+        }
+      }
+
+      cycleComputers(0, computers, Vector())
     }.max
 
     // Should be 69816958
