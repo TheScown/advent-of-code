@@ -1,4 +1,4 @@
-package space.scown.advent2023
+package space.scown.adventofcode
 package lib
 
 import java.util.concurrent.TimeUnit

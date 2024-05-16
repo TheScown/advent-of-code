@@ -8,6 +8,6 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" 
 
 lazy val root = (project in file("."))
   .settings(
-    name := "advent-of-code-2023",
-    idePackagePrefix := Some("space.scown.advent2023")
+    name := "advent-of-code",
+    idePackagePrefix := Some("space.scown.adventofcode")
   )
