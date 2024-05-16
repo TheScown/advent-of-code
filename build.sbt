@@ -2,7 +2,7 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.10"
 
-libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.2.0"
+libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
 
 
