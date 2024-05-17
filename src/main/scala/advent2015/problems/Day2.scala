@@ -1,5 +1,5 @@
 package space.scown.adventofcode
-package problems
+package advent2015.problems
 
 import lib.{Files, Problem}
 
