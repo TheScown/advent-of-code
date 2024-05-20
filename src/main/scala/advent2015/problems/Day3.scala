@@ -4,7 +4,7 @@ package advent2015.problems
 import lib.{Complex, Files, Problem}
 
 import scala.annotation.tailrec
-import scala.math.Fractional.Implicits.infixFractionalOps
+import scala.math.Numeric.Implicits.infixNumericOps
 
 case class Day3(input: String) extends Problem {
   override def solve1(): Unit = {

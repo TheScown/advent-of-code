@@ -1,9 +1,10 @@
 package space.scown.adventofcode
 package lib
 
-import scala.math.{Pi, ScalaNumber, ScalaNumericConversions}
+import scala.collection.immutable.NumericRange
+import scala.math.{ScalaNumber, ScalaNumericConversions}
 
-case class Complex(re: Double, im: Double) extends ScalaNumber with ScalaNumericConversions {
+case class Complex(re: BigInt, im: BigInt) extends ScalaNumber with ScalaNumericConversions {
 
   def conjugate: Complex = Complex(re, -im)
 
@@ -17,8 +18,13 @@ case class Complex(re: Double, im: Double) extends ScalaNumber with ScalaNumeric
 
   override def floatValue: Float = re.toFloat
 
-  override def doubleValue: Double = re
+  override def doubleValue: Double = re.toDouble
 
+  def to(end: Complex): IndexedSeq[Complex] = {
+    (this.re to end.re).flatMap { n =>
+      NumericRange(Complex(n, this.im), Complex(n, end.im), Complex.I).inclusive
+    }
+  }
 }
 
 case object Complex {
@@ -27,7 +33,7 @@ case object Complex {
   val ONE: Complex = Complex(1, 0)
   val I: Complex = Complex(0, 1)
 
-  trait ComplexIsFractional extends Fractional[Complex] {
+  trait ComplexIsIntegral extends Integral[Complex] {
     override def zero: Complex = ZERO
     override def one: Complex = ONE
 
@@ -35,32 +41,30 @@ case object Complex {
     override def minus(x: Complex, y: Complex): Complex = Complex(x.re - y.re, x.im - y.im)
     override def times(x: Complex, y: Complex): Complex = Complex(x.re * y.re - x.im * y.im, x.im * y.re + x.re * y.im)
     override def negate(x: Complex): Complex = Complex(-x.re, -x.im)
-    override def fromInt(x: Int): Complex = Complex(x.toDouble, 0)
+    override def fromInt(x: Int): Complex = Complex(BigInt(x), 0)
     override def parseString(str: String): Option[Complex] = ???
     override def toInt(x: Complex): Int = x.intValue
     override def toLong(x: Complex): Long = x.longValue
     override def toFloat(x: Complex): Float = x.floatValue
     override def toDouble(x: Complex): Double = x.doubleValue
 
-    override def div(x: Complex, y: Complex): Complex = {
+    override def quot(x: Complex, y: Complex): Complex = {
       val q = x * y.conjugate
       val d = y * y.conjugate
-      Complex(q.re / d.toDouble, q.im / d.toDouble)
+      Complex(q.re / d.re, q.im / d.re)
     }
 
-    override def abs(x: Complex): Complex = {
-      val modSquare = x.re * x.re + x.im * x.im
-      Complex(Math.sqrt(modSquare), 0)
+    override def rem(x: Complex, y: Complex): Complex = {
+      val q = x * y.conjugate
+      val d = y * y.conjugate
+      Complex(q.re % d.re, q.im % d.re)
     }
 
-    override def sign(x: Complex): Complex = {
-      if (x.re == 0) Complex(Pi / 2 * x.im.sign, 0)
-      else Complex(Math.atan(x.im / x.re), 0)
+    override def compare(x: Complex, y: Complex): Int = {
+      (x.re * x.re + x.im * x.im).compare(y.re * y.re + y.im * y.im)
     }
-
-    override def compare(x: Complex, y: Complex): Int = x.abs.toDouble.compare(y.abs.toDouble)
   }
 
-  implicit object ComplexIsFractional extends ComplexIsFractional with Ordering[Complex]
+  implicit object ComplexIsIntegral extends ComplexIsIntegral with Ordering[Complex]
 
 }
