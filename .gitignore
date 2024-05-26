@@ -48,4 +48,4 @@ build/
 
 ### Project ###
 sbt.json
-src/main/resources
+src/main/resources/*/day*.txt
