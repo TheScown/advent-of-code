@@ -1,7 +1,10 @@
 package space.scown.adventofcode
 package lib
 
+import lib.Complex.ComplexIsIntegral
+
 import scala.collection.immutable.NumericRange
+import scala.language.implicitConversions
 import scala.math.{ScalaNumber, ScalaNumericConversions}
 
 case class Complex(re: BigInt, im: BigInt) extends ScalaNumber with ScalaNumericConversions {
@@ -20,6 +23,9 @@ case class Complex(re: BigInt, im: BigInt) extends ScalaNumber with ScalaNumeric
 
   override def doubleValue: Double = re.toDouble
 
+  def +(x: Int): Complex = ComplexIsIntegral.plus(this, Complex(x, 0))
+  def *(x: Int): Complex = ComplexIsIntegral.times(this, Complex(x, 0))
+
   def to(end: Complex): IndexedSeq[Complex] = {
     (this.re to end.re).flatMap { n =>
       NumericRange(Complex(n, this.im), Complex(n, end.im), Complex.I).inclusive
@@ -32,6 +38,18 @@ case object Complex {
   val ZERO: Complex = Complex(0, 0)
   val ONE: Complex = Complex(1, 0)
   val I: Complex = Complex(0, 1)
+
+  def linearRange(start: Complex, end: Complex, step: Complex, inclusive: Boolean = false): IndexedSeq[Complex] = {
+    val operator: (BigInt, BigInt, BigInt) => NumericRange[BigInt] = if (inclusive) Range.BigInt.inclusive else Range.BigInt.apply
+
+    if (start.re == end.re) {
+      operator(start.im, end.im, step.im).map(im => Complex(start.re, im))
+    }
+    else if (start.im == end.im) {
+      operator(start.re, end.re, step.re).map(re => Complex(re, start.im))
+    }
+    else throw new IllegalArgumentException(s"Non linear range $start to $end by $step")
+  }
 
   trait ComplexIsIntegral extends Integral[Complex] {
     override def zero: Complex = ZERO
@@ -61,7 +79,9 @@ case object Complex {
     }
 
     override def compare(x: Complex, y: Complex): Int = {
-      (x.re * x.re + x.im * x.im).compare(y.re * y.re + y.im * y.im)
+      if (x.re == y.re) x.im.compare(y.im)
+      else if (x.im == y.im) x.re.compare(y.re)
+      else (x.re * x.re + x.im * x.im).compare(y.re * y.re + y.im * y.im)
     }
   }
 
