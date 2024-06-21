@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package lib
 
-import advent2023.problems.day3.Address
+import scala.math.Integral.Implicits.infixIntegralOps
 
 /**
  * Grid utility class
@@ -38,6 +38,32 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     } yield Complex(address.re + i, address.im + j)
   }
 
+  def neighbours(address: Complex): IndexedSeq[Complex] = {
+    if (wrapping) {
+      throw new UnsupportedOperationException("Wrapping grid not yet supported")
+    }
+    else for {
+      i <- -1 to 1
+      j <- -1 to 1
+      if !(i == 0 && j == 0)
+      if i == 0 || j == 0
+      if (address.re + i) >= 0 && (address.re + i) < rowLength
+      if (address.im + j) <= 0 && (address.im + j) > -columnLength
+    } yield Complex(address.re + i, address.im + j)
+  }
+
+  def next(address: Complex, delta: Complex): Complex = {
+    if (wrapping) {
+      throw new UnsupportedOperationException("Wrapping grid not yet supported")
+    }
+    else {
+      val possibleNext = address + delta
+      if (possibleNext.re < 0 || possibleNext.re >= rowLength
+        || possibleNext.im > 0 || possibleNext.im <= -columnLength) address
+      else possibleNext
+    }
+  }
+
   def map[S](f: T => S): Grid[S] = {
     Grid(values.map(row => row.map(f)))
   }
@@ -54,6 +80,13 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
 
   def count(p: T => Boolean): Int = {
     values.map(row => row.count(p)).sum
+    values.indexOf()
+  }
+
+  def indexOf(x: T): Option[Complex] = {
+    zipWithIndex.values.flatten.find {
+      case (v, _) => x == v
+    }.map(_._2)
   }
 
 }
