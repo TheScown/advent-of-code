@@ -2,11 +2,10 @@ package space.scown.adventofcode
 package advent2019.problems
 
 import advent2019.intcode._
-import lib.{Files, Problem}
+import lib.{Files, Gui, Problem}
 
+import java.awt.Color
 import java.awt.image.BufferedImage
-import java.awt.{Color, FlowLayout, Image}
-import javax.swing.{ImageIcon, JFrame, JLabel, WindowConstants}
 import scala.annotation.tailrec
 
 case class Day11(lines: Vector[String]) extends Problem {
@@ -58,21 +57,7 @@ case class Day11(lines: Vector[String]) extends Problem {
       image.setRGB(x + translateX, height - 1 - (y + translateY), colour)
     }
 
-    renderImage(width, height, image)
-  }
-
-  private def renderImage(width: Int, height: Int, image: BufferedImage): Unit = {
-    val frame = new JFrame()
-    // Scale the image up so it's legible
-    val icon = new ImageIcon(image.getScaledInstance(width * 10, height * 10, Image.SCALE_DEFAULT))
-    frame.setLayout(new FlowLayout())
-    // Need to allow height for the title bar
-    frame.setSize(width * 10, height * 10 + 50)
-    val label = new JLabel()
-    label.setIcon(icon)
-    frame.add(label)
-    frame.setVisible(true)
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+    Gui.renderImage(image)
   }
 }
 

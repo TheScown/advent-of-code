@@ -25,6 +25,12 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     Grid(values.updated(-address.im.toInt, values(-address.im.toInt).updated(address.re.toInt, value)))
   }
 
+  def updated(address: Complex, grid: Grid[T]): Grid[T] = {
+    grid.zipWithIndex.map(p => (p._1, p._2 + address)).foldLeft(this) {(self, other) =>
+      self.updated(other._2, other._1)
+    }
+  }
+
   def neighboursWithDiagonals(address: Complex): IndexedSeq[Complex] = {
     if (wrapping) {
       throw new UnsupportedOperationException("Wrapping grid not yet supported")
@@ -64,12 +70,41 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }
   }
 
+  def rotateRow(row: Int, by: Int): Grid[T] = {
+    if (by == 0) return this
+
+    val affectedRow = values(row)
+
+    if (by < 0) {
+      throw new UnsupportedOperationException("Rotate left not supported")
+    }
+    else {
+      val toMove = affectedRow.slice(affectedRow.size - by, affectedRow.size)
+      val newRow = toMove ++ affectedRow.slice(0, affectedRow.size - by)
+      Grid(values.updated(row, newRow))
+    }
+  }
+
+  def rotateColumn(column: Int, by: Int): Grid[T] = {
+    if (by == 0) return this
+
+    val affectedColumn = values.map(r => r(column))
+
+    if (by < 0) {
+      // Remember by is -ve
+      val toMove = affectedColumn.slice(affectedColumn.size + by, affectedColumn.size)
+      val newColumn = toMove ++ affectedColumn.slice(0, affectedColumn.size + by)
+      Grid(values.zip(newColumn).map(p => p._1.updated(column, p._2)))
+    } else {
+      throw new UnsupportedOperationException("Rotate up not supported")
+    }
+  }
+
   def map[S](f: T => S): Grid[S] = {
     Grid(values.map(row => row.map(f)))
   }
 
-  def indices: IndexedSeq[Complex] = Complex.ZERO to Complex(rowLength, columnLength)
-
+  // The standard zipWithIndex assumes integer indices
   def zipWithIndex: Grid[(T, Complex)] = {
     Grid(values.zipWithIndex.map { case (row, im) =>
       row.zipWithIndex.map {
@@ -80,7 +115,12 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
 
   def count(p: T => Boolean): Int = {
     values.map(row => row.count(p)).sum
-    values.indexOf()
+  }
+
+  def foldLeft[S](value: S)(f: (S, T) => S): S = {
+    values.foldLeft(value) { (current, row) =>
+      row.foldLeft(current)((current, t) => f(current, t))
+    }
   }
 
   def indexOf(x: T): Option[Complex] = {
@@ -89,4 +129,13 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }.map(_._2)
   }
 
+  def size: Int = {
+    rowLength * columnLength
+  }
+
+  override def toString: String = {
+    val gridString = values.map(row => row.mkString(",")).mkString("\n")
+
+    s"Grid(\n$gridString\n)"
+  }
 }
