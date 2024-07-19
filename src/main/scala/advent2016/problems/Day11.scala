@@ -1,10 +1,7 @@
 package space.scown.adventofcode
 package advent2016.problems
 
-import lib.{Files, Problem, Timer}
-
-import scala.annotation.tailrec
-import scala.collection.immutable.Queue
+import lib.{BFS, Files, Problem, Timer}
 
 case class Day11(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -30,49 +27,34 @@ case class Day11(input: Vector[String]) extends Problem {
   }
 
   private def solve(floors: Vector[Floor]): Int = {
-    @tailrec
-    def helper(queue: Queue[State], seen: Set[State]): Int = {
-      if (queue.isEmpty) throw new IllegalStateException("No more states to test")
-      else {
-        val (next, nextQueue) = queue.dequeue
-        next match {
-          case State(elevatorFloor, floors, moves) =>
-            val minFloor = floors.indexWhere(f => f.things.nonEmpty)
-            val nextFloors = Seq(elevatorFloor - 1, elevatorFloor + 1).filter(f => f >= minFloor && f < floors.size)
-            val newStates = nextFloors.flatMap { nextFloorId =>
-              val currentFloor = floors(elevatorFloor)
-              val nextFloor = floors(nextFloorId)
-              val currentFloorThings = currentFloor.things.toVector
-
-              val possibleMoves = currentFloorThings.combinations(2).toVector ++ currentFloorThings.combinations(1)
-              possibleMoves.map { move =>
-                val newCurrentFloor = currentFloor.copy(things = (currentFloorThings diff move).toSet)
-                val newNextFloor = nextFloor.copy(things = nextFloor.things ++ move)
-                State(
-                  nextFloorId,
-                  floors
-                    .updated(elevatorFloor, newCurrentFloor)
-                    .updated(nextFloorId, newNextFloor),
-                  moves + 1
-                )
-              }
-                .filterNot(state => seen.contains(state))
-                .filter(state => state.floors.forall(_.isValid))
-            }
-
-            newStates.find(_.isComplete) match {
-              case Some(State(_, _, moves)) => moves
-              case None =>
-                val updatedQueue = newStates.foldLeft(nextQueue)((queue, state) => queue.enqueue(state))
-                helper(updatedQueue, seen ++ newStates)
-            }
-        }
-      }
-    }
-
     val initialState = State(0, floors, 0)
-    val result = helper(Queue(initialState), Set(initialState))
-    result
+    val result = BFS.solve[State](initialState, s => s.isComplete) {
+      case State(elevatorFloor, floors, moves) =>
+        val minFloor = floors.indexWhere(f => f.things.nonEmpty)
+        val nextFloors = Seq(elevatorFloor - 1, elevatorFloor + 1).filter(f => f >= minFloor && f < floors.size)
+        val newStates = nextFloors.flatMap { nextFloorId =>
+          val currentFloor = floors(elevatorFloor)
+          val nextFloor = floors(nextFloorId)
+          val currentFloorThings = currentFloor.things.toVector
+
+          val possibleMoves = currentFloorThings.combinations(2).toVector ++ currentFloorThings.combinations(1)
+          possibleMoves.map { move =>
+              val newCurrentFloor = currentFloor.copy(things = (currentFloorThings diff move).toSet)
+              val newNextFloor = nextFloor.copy(things = nextFloor.things ++ move)
+              State(
+                nextFloorId,
+                floors
+                  .updated(elevatorFloor, newCurrentFloor)
+                  .updated(nextFloorId, newNextFloor),
+                moves + 1
+              )
+            }
+            .filter(state => state.floors.forall(_.isValid))
+        }
+
+        newStates
+    }
+    result.moves
   }
 
   private def parse(): Vector[Floor] = {

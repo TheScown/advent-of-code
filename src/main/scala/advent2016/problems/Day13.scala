@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package advent2016.problems
 
-import lib.{Complex, Files, Problem, Timer}
+import lib.{BFS, Complex, Files, Problem, Timer}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
@@ -13,27 +13,14 @@ case class Day13(input: String) extends Problem {
   override def solve1(): Unit = {
     val target = Complex(31, 39)
 
-    @tailrec
-    def helper(queue: Queue[State], cache: Set[Complex]): Int = {
-      if (queue.isEmpty) throw new IllegalStateException("No states left")
-      else {
-        queue.dequeue match {
-          case (State(address, moves), nextQueue) =>
-            val neighbours = validNeighbours(address, cache)
+    val start = State(Complex(1, 1), 0)
 
-            neighbours.find(_ == target) match {
-              case Some(_) => moves + 1
-              case None =>
-                val updatedQueue = neighbours.foldLeft(nextQueue)((queue, n) => queue.enqueue(State(n, moves + 1)))
-                helper(updatedQueue, cache ++ neighbours)
-            }
-        }
-      }
-    }
+    val result = BFS.solve[State](start, _.address == target) {
+      case State(address, moves) =>
+        val neighbours = validNeighbours(address)
 
-    val start = Complex(1, 1)
-
-    val result = helper(Queue(State(start, 0)), Set(start))
+        neighbours.map(State(_, moves + 1))
+    }.moves + 1
 
     println(s"Result 1: $result")
   }
@@ -45,7 +32,7 @@ case class Day13(input: String) extends Problem {
       else {
         queue.dequeue match {
           case (State(address, moves), nextQueue) =>
-            val neighbours = if (moves == 50) Seq() else validNeighbours(address, cache)
+            val neighbours = if (moves == 50) Seq() else validNeighbours(address).filterNot(cache.contains)
 
             val updatedQueue = neighbours.foldLeft(nextQueue)((queue, n) => queue.enqueue(State(n, moves + 1)))
             helper(updatedQueue, cache ++ neighbours)
@@ -60,11 +47,11 @@ case class Day13(input: String) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def validNeighbours(address: Complex, cache: Set[Complex]) = {
+  private def validNeighbours(address: Complex) = {
     Seq(Complex.ONE, -Complex.ONE, Complex.I, -Complex.I)
       .map(delta => address + delta)
       .filter { c =>
-        c.re >= 0 && c.im >= 0 && !cache.contains(c) && !isWall(c)
+        c.re >= 0 && c.im >= 0 && !isWall(c)
       }
   }
 
@@ -89,7 +76,7 @@ case class Day13(input: String) extends Problem {
   }
 }
 
-case object Problem extends App {
+case object Day13 extends App {
   val input = Files.lines("2016/day13.txt").head
   val problem = Day13(input)
   Timer.time(() => problem.solve1())
