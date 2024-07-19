@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package advent2015.problems
 
-import lib.{Files, Problem}
+import lib.{Dijkstra, Files, Problem}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -17,28 +17,23 @@ case class Day22(input: Vector[String]) extends Problem {
       playerTurn = true
     )
 
-    val queue = mutable.PriorityQueue[State]() {
-      case (x, y) => y.manaConsumed.compareTo(x.manaConsumed)
-    }
-
-    queue.enqueue(initialState)
-
     val allSpells = Seq(MagicMissile, Drain, Shield, Poison, Recharge)
 
-    @tailrec
-    def helper(): State = {
-      val state = queue.dequeue()
-
+    val finalState = Dijkstra.solve[State](
+      initialState,
+      { case (x, y) => y.manaConsumed.compareTo(x.manaConsumed) },
+      _.enemy.hitPoints <= 0
+    ) { state =>
       val afterEffectsEnd = startOfTurn(state)
 
-      if (afterEffectsEnd.enemy.hitPoints <= 0) afterEffectsEnd
+      if (afterEffectsEnd.enemy.hitPoints <= 0) Seq(afterEffectsEnd)
       else {
         if (afterEffectsEnd.playerTurn) {
           val castableSpells = allSpells
             .filter(spell => spell.cost <= afterEffectsEnd.player.mana)
             .filter(spell => !afterEffectsEnd.effects.exists(e => e.originator == spell))
 
-          if (castableSpells.isEmpty) helper()
+          if (castableSpells.isEmpty) Seq()
           else {
             val afterPlayerTurn = castableSpells
               .map { spell =>
@@ -52,11 +47,8 @@ case class Day22(input: Vector[String]) extends Problem {
               }
 
             val winningStates = afterPlayerTurn.filter(s => s.enemy.hitPoints <= 0)
-            if (winningStates.nonEmpty) winningStates.minBy(_.manaConsumed)
-            else {
-              afterPlayerTurn.foreach(s => queue.enqueue(s))
-              helper()
-            }
+            if (winningStates.nonEmpty) Seq(winningStates.minBy(_.manaConsumed))
+            else afterPlayerTurn
           }
         }
         else {
@@ -65,18 +57,16 @@ case class Day22(input: Vector[String]) extends Problem {
           )
 
           if (afterBossAttack.player.hitPoints > 0) {
-            queue.enqueue(afterBossAttack.copy(
+            Seq(afterBossAttack.copy(
               history = afterBossAttack.history :+ state,
               playerTurn = true
             ))
           }
-
-          helper()
+          else Seq()
         }
       }
     }
 
-    val finalState = helper()
     val result = finalState.manaConsumed
 
     println(s"Result 1: $result")
