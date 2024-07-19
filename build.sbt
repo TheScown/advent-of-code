@@ -6,6 +6,7 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
 
 libraryDependencies += "org.json4s" %% "json4s-native" % "4.0.7"
+libraryDependencies += "commons-codec" % "commons-codec" % "1.17.0"
 
 lazy val root = (project in file("."))
   .settings(

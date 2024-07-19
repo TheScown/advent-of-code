@@ -1,6 +1,9 @@
 package space.scown.adventofcode
 package lib
 
+import org.apache.commons.codec.binary.Hex
+
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 object Crypto {
@@ -9,9 +12,7 @@ object Crypto {
     .getInstance("MD5")
 
   def md5(s: String): String = {
-    md5.digest(s.getBytes("UTF-8"))
-      .map("%02x".format(_))
-      .mkString("")
+    new String(Hex.encodeHex(md5.digest(s.getBytes(StandardCharsets.UTF_8))))
   }
 
 }
