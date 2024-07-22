@@ -1,10 +1,8 @@
 package space.scown.adventofcode
 package advent2016.problems
 
-import lib.{BFS, Complex, Files, Problem, Timer}
+import lib._
 
-import scala.annotation.tailrec
-import scala.collection.immutable.Queue
 import scala.math.Integral.Implicits.infixIntegralOps
 
 case class Day13(input: String) extends Problem {
@@ -26,23 +24,13 @@ case class Day13(input: String) extends Problem {
   }
 
   override def solve2(): Unit = {
-    @tailrec
-    def helper(queue: Queue[State], cache: Set[Complex]): Int = {
-      if (queue.isEmpty) cache.size
-      else {
-        queue.dequeue match {
-          case (State(address, moves), nextQueue) =>
-            val neighbours = if (moves == 50) Seq() else validNeighbours(address).filterNot(cache.contains)
+    val start = State(Complex(1, 1), 0)
 
-            val updatedQueue = neighbours.foldLeft(nextQueue)((queue, n) => queue.enqueue(State(n, moves + 1)))
-            helper(updatedQueue, cache ++ neighbours)
-        }
-      }
-    }
-
-    val start = Complex(1, 1)
-
-    val result = helper(Queue(State(start, 0)), Set(start))
+    val result = BFS.reachable(start) {
+      case State(address, moves) =>
+        if (moves == 50) Seq()
+        else validNeighbours(address).map(c => State(c, moves + 1))
+    }.size
 
     println(s"Result 2: $result")
   }

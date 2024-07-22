@@ -26,4 +26,20 @@ case object BFS {
     helper(Queue(start), Set(start))
   }
 
+  def reachable[T](start: T)(next: T => Seq[T]): Set[T] = {
+    @tailrec
+    def helper(queue: Queue[T], seen: Set[T]): Set[T] = {
+      if (queue.isEmpty) seen
+      else {
+        val (current, nextQueue) = queue.dequeue
+        val nextStates = next(current).filterNot(seen.contains)
+
+        val updatedQueue = nextQueue.enqueueAll(nextStates)
+        helper(updatedQueue, seen ++ nextStates)
+      }
+    }
+
+    helper(Queue(start), Set(start))
+  }
+
 }
