@@ -34,9 +34,7 @@ case class Day8(input: Vector[String]) extends Problem {
   private def generateDisplay = {
     val instructions = parse()
 
-    val initialGrid = Grid(
-      Vector.fill(6)(Vector.fill(50)(false))
-    )
+    val initialGrid = Grid.of(6, 50, false)
 
     val finalGrid = instructions.foldLeft(initialGrid) { (grid, instruction) =>
       instruction match {

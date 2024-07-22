@@ -139,3 +139,11 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     s"Grid(\n$gridString\n)"
   }
 }
+
+case object Grid {
+  def of[T](rows: Int, columns: Int, value: T): Grid[T] = {
+    Grid(
+      Vector.fill(rows)(Vector.fill(columns)(value))
+    )
+  }
+}
