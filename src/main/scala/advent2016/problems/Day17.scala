@@ -39,14 +39,14 @@ case class Day17(input: String) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def validNeighbours(state: State): Seq[State] = { state match {
+  private def validNeighbours(state: State): Seq[State] = state match {
     case State(address, path) =>
       val hash = Crypto.md5(input + path.mkString("")).take(4)
       hash.zip(directions)
         .filter { case (c, _) => validChars.contains(c) }
         .map { case (_, delta) => State(address + delta._1, path :+ delta._2) }
         .filter { case State(Complex(re, im), _) => re >= 0 && re < 4 && im <= 0 && im > -4 }
-  } }
+  }
 
   case class State(address: Complex, path: Vector[Char])
 }
@@ -54,6 +54,6 @@ case class Day17(input: String) extends Problem {
 case object Day17 extends App {
   val input = Files.lines("2016/day17.txt").head
   val problem = Day17(input)
-  problem.solve1()
-  problem.solve2()
+  Timer.time(() => problem.solve1())
+  Timer.time(() => problem.solve2())
 }

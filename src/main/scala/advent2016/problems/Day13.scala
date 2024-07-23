@@ -26,7 +26,7 @@ case class Day13(input: String) extends Problem {
   override def solve2(): Unit = {
     val start = State(Complex(1, 1), 0)
 
-    val result = BFS.reachable(start) {
+    val result = DFS.reachable(start) {
       case State(address, moves) =>
         if (moves == 50) Seq()
         else validNeighbours(address).map(c => State(c, moves + 1))
