@@ -129,6 +129,12 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }.map(_._2)
   }
 
+  def indexWhere(p: T => Boolean): Option[Complex] = {
+    zipWithIndex.values.flatten.find {
+      case (v, _) => p(v)
+    }.map(_._2)
+  }
+
   def size: Int = {
     rowLength * columnLength
   }

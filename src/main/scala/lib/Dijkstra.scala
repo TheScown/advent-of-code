@@ -11,7 +11,7 @@ case object Dijkstra {
     queue.enqueue(start)
 
     @tailrec
-    def helper(): T = {
+    def helper(seen: Set[T]): T = {
       if (queue.isEmpty) throw new IllegalStateException("No more states to test")
       else {
         val current = queue.dequeue()
@@ -21,13 +21,13 @@ case object Dijkstra {
           case Some(state) =>
             state
           case None =>
-            nextStates.foreach(queue.enqueue(_))
-            helper()
+            nextStates.filterNot(seen.contains).foreach(queue.enqueue(_))
+            helper(seen ++ nextStates)
         }
       }
     }
 
-    helper()
+    helper(Set(start))
   }
 
 }

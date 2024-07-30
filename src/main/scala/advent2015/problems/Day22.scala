@@ -179,7 +179,14 @@ case class Day22(input: Vector[String]) extends Problem {
 
   case class Enemy(hitPoints: Int, damage: Int)
 
-  case class State(player: Player, enemy: Enemy, manaConsumed: Int, effects: Seq[Effect], history: Seq[State], playerTurn: Boolean)
+  case class State(player: Player, enemy: Enemy, manaConsumed: Int, effects: Seq[Effect], history: Seq[State], playerTurn: Boolean) {
+    override def equals(obj: Any): Boolean = obj match {
+      case State(player, enemy, manaConsumed, effects, _, playerTurn) => player == this.player && enemy == this.enemy && manaConsumed == this.manaConsumed && effects == this.effects && playerTurn == this.playerTurn
+      case _ => false
+    }
+
+    override def hashCode(): Int = player.hashCode() + 37 * (enemy.hashCode() + 37 * (manaConsumed + 37 * effects.hashCode() + playerTurn.hashCode()))
+  }
 
   sealed trait Spell {
     def cost: Int
