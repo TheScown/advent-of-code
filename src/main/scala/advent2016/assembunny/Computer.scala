@@ -37,7 +37,9 @@ case object Computer {
                 case Copy(s1, s2) => Jnz(s1, s2)
                 case Jnz(s1, s2) => Copy(s1, s2)
               }
-              helper(pc + 1, registers, instructions.updated(pc + x, newInstruction))
+              val toOptimise = instructions.updated(pc + x, newInstruction)
+              val optimised = OptimizingGrammar.optimise(toOptimise)
+              helper(pc + 1, registers, optimised)
             }
           case Tgl(Register(x)) =>
             if (pc + registers(x) >= instructions.size) helper(pc + 1, registers, instructions)
@@ -49,14 +51,20 @@ case object Computer {
                 case Copy(s1, s2) => Jnz(s1, s2)
                 case Jnz(s1, s2) => Copy(s1, s2)
               }
-              helper(pc + 1, registers, instructions.updated(pc + registers(x), newInstruction))
+              val toOptimise = instructions.updated(pc + registers(x), newInstruction)
+              val optimised = OptimizingGrammar.optimise(toOptimise)
+              helper(pc + 1, registers, optimised)
             }
+          case Add(Register(src), Register(dest)) =>
+            helper(pc + 1, registers + (dest -> (registers(dest) + registers(src))) + (src -> 0), instructions)
+          case Multiply(Register(x), Register(y), Register(dest)) =>
+            helper(pc + 1, registers + (dest -> (registers(dest) + registers(x) * registers(y))) + (x -> 0) + (y -> 0), instructions)
           case _ => helper(pc + 1, registers, instructions)
         }
       }
     }
 
-    helper(0, registers, instructions)
+    helper(0, registers, OptimizingGrammar.optimise(instructions))
   }
 
 }

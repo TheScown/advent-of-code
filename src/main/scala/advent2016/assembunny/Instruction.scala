@@ -7,6 +7,9 @@ case class Inc(register: Source) extends Instruction
 case class Dec(register: Source) extends Instruction
 case class Jnz(source: Source, jump: Source) extends Instruction
 case class Tgl(source: Source) extends Instruction
+case class Add(source: Register, dest: Register) extends Instruction
+case class Multiply(a: Register, b: Register, dest: Register) extends Instruction
+case class Noop() extends Instruction
 
 sealed trait Source
 case class Register(name: Char) extends Source
