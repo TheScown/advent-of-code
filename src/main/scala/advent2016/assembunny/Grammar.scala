@@ -8,7 +8,7 @@ import scala.language.postfixOps
 import scala.util.parsing.combinator.{Parsers, RegexParsers}
 
 case object Grammar extends RegexParsers {
-  def instruction: Parser[Instruction] = cpy | inc | dec | jnz | tgl
+  def instruction: Parser[Instruction] = cpy | inc | dec | jnz | tgl | out
 
   private def cpy: Parser[Copy] = ("cpy" ~> (source ~ register)) ^^ {
     case source ~ register => Copy(source, register)
@@ -23,6 +23,8 @@ case object Grammar extends RegexParsers {
   }
 
   private def tgl: Parser[Tgl] = ("tgl" ~> register) ^^ (register => Tgl(register))
+
+  private def out: Parser[Out] = ("out" ~> source) ^^ (source => Out(source))
 
   private def source: Parser[Source] = register | number
   private def register: Parser[Register] = "[abcd]".r ^^ (s => Register(s.head))

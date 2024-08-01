@@ -2,27 +2,26 @@ package space.scown.adventofcode
 package advent2016.problems
 
 import advent2016.assembunny.{Computer, Grammar, Instruction}
-import lib.{Files, Problem, Timer}
+import lib.{Files, Integers, Problem}
 
-case class Day12(input: Vector[String]) extends Problem {
+case class Day25(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val instructions = parse()
 
-    val result = run(instructions, Map(('a', 0), ('b', 0), ('c', 0), ('d', 0)))
+    val result = Integers.naturalNumbers.find { i =>
+      val list = run(instructions, Map(('a', i), ('b', 0), ('c', 0), ('d', 0))).take(8)
+      list.toVector == Vector(0, 1, 0, 1, 0, 1, 0, 1)
+    }.get
 
     println(s"Result 1: $result")
   }
 
   override def solve2(): Unit = {
-    val instructions = parse()
-
-    val result = run(instructions, Map(('a', 0), ('b', 0), ('c', 1), ('d', 0)))
-
-    println(s"Result 2: $result")
+    println("Result 2: Transmit the signal!")
   }
 
-  def run(instructions: Vector[Instruction], registers: Map[Char, Int]): Int = {
-    Computer.run(instructions, registers).head
+  def run(instructions: Vector[Instruction], registers: Map[Char, Int]): LazyList[Int] = {
+    Computer.run(instructions, registers)
   }
 
   def parse(): Vector[Instruction] = {
@@ -36,9 +35,9 @@ case class Day12(input: Vector[String]) extends Problem {
   }
 }
 
-case object Day12 extends App {
-  val input = Files.lines("2016/day12.txt")
-  val problem = Day12(input)
-  Timer.time(() => problem.solve1())
-  Timer.time(() => problem.solve2())
+case object Day25 extends App {
+  val input = Files.lines("2016/day25.txt")
+  val problem = Day25(input)
+  problem.solve1()
+  problem.solve2()
 }

@@ -22,7 +22,7 @@ case class Day23(input: Vector[String]) extends Problem {
   }
 
   def run(instructions: Vector[Instruction], registers: Map[Char, Int]): Int = {
-    Computer.run(instructions, registers)
+    Computer.run(instructions, registers).head
   }
 
   def parse(): Vector[Instruction] = {

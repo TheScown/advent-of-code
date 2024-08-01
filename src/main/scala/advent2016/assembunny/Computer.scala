@@ -5,10 +5,9 @@ import scala.annotation.tailrec
 
 case object Computer {
 
-  def run(instructions: Vector[Instruction], registers: Map[Char, Int]): Int = {
-    @tailrec
-    def helper(pc: Int, registers: Map[Char, Int], instructions: Vector[Instruction]): Int = {
-      if (pc >= instructions.size) registers('a')
+  def run(instructions: Vector[Instruction], registers: Map[Char, Int]): LazyList[Int] = {
+    def helper(pc: Int, registers: Map[Char, Int], instructions: Vector[Instruction]): LazyList[Int] = {
+      if (pc >= instructions.size) LazyList(registers('a'))
       else {
         instructions(pc) match {
           case Inc(Register(x)) => helper(pc + 1, registers + (x -> (registers(x) + 1)), instructions)
@@ -27,6 +26,10 @@ case object Computer {
           case Jnz(Value(x), Register(y)) =>
             if (x == 0) helper(pc + 1, registers, instructions)
             else helper(pc + registers(y), registers, instructions)
+          case Out(Register(x)) =>
+            registers(x) #:: helper(pc + 1, registers, instructions)
+          case Out(Value(x)) =>
+            x #:: helper(pc + 1, registers, instructions)
           case Tgl(Value(x)) =>
             if (pc + x >= instructions.size) helper(pc + 1, registers, instructions)
             else {
