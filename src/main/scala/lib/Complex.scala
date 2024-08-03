@@ -9,6 +9,10 @@ import scala.math.{ScalaNumber, ScalaNumericConversions}
 
 case class Complex(re: BigInt, im: BigInt) extends ScalaNumber with ScalaNumericConversions {
 
+  val isReal: Boolean = im == 0
+
+  val isImaginary: Boolean = re == 0
+
   def conjugate: Complex = Complex(re, -im)
 
   override def underlying(): AnyRef = this
