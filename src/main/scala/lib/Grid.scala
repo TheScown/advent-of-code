@@ -70,6 +70,21 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }
   }
 
+  def grouped(rows: Int, columns: Int): Grid[Grid[T]] = {
+    val groupedRows = values.map(_.grouped(columns).toVector)
+    val rowGroups = groupedRows.grouped(rows).toVector
+    val gridRows = rowGroups.map { rowGroup =>
+      rowGroup.transpose.map(Grid(_))
+    }
+    Grid(gridRows)
+  }
+
+  def rotateRight(): Grid[T] = Grid(values.transpose.map(_.reverse))
+  def rotateLeft(): Grid[T] = Grid(values.map(_.reverse).transpose)
+
+  def flipHorizontally(): Grid[T] = Grid(values.map(_.reverse))
+  def flipVertically(): Grid[T] = Grid(values.reverse)
+
   def rotateRow(row: Int, by: Int): Grid[T] = {
     if (by == 0) return this
 
@@ -155,5 +170,13 @@ case object Grid {
     Grid(
       Vector.fill(rows)(Vector.fill(columns)(value))
     )
+  }
+
+  def flatten[T](input: Grid[Grid[T]]): Grid[T] = {
+    Grid(input.values.flatMap { gridRow =>
+      gridRow.map(_.values).reduce { (a, b) =>
+        a.zip(b).map(p => p._1 ++ p._2)
+      }
+    })
   }
 }
