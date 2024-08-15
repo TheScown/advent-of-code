@@ -16,6 +16,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
 
   val rowLength: Int = values.head.size
   val columnLength: Int = values.size
+  val centre: Complex = Complex(values.head.size / 2, -(values.size / 2))
 
   def apply(address: Complex): T = {
     values(-address.im.toInt)(address.re.toInt)
@@ -128,6 +129,14 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     })
   }
 
+  def indices: Vector[Complex] = {
+    values.zipWithIndex.flatMap { case (row, im) =>
+      row.zipWithIndex.map {
+        case (_, re) => Complex(re, -im)
+      }
+    }
+  }
+
   def count(p: T => Boolean): Int = {
     values.map(row => row.count(p)).sum
   }
@@ -156,6 +165,10 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
 
   def size: Int = {
     rowLength * columnLength
+  }
+
+  def toMap: Map[Complex, T] = {
+    indices.map(i => i -> apply(i)).toMap
   }
 
   override def toString: String = {
