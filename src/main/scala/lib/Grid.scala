@@ -32,6 +32,12 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }
   }
 
+  def slice(address: Complex, width: Int, height: Int): Grid[T] = {
+    Grid(values.slice(-address.im.toInt, -address.im.toInt + height).map { row =>
+      row.slice(address.re.toInt, address.re.toInt + width)
+    })
+  }
+
   def neighboursWithDiagonals(address: Complex): IndexedSeq[Complex] = {
     if (wrapping) {
       throw new UnsupportedOperationException("Wrapping grid not yet supported")
@@ -161,6 +167,10 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
 
   def filter(p: T => Boolean): Seq[T] = {
     values.flatten.filter(p)
+  }
+
+  def find(p: T => Boolean): Option[T] = {
+    values.flatten.find(p)
   }
 
   def size: Int = {
