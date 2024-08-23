@@ -6,10 +6,8 @@ import lib.{Files, Problem, Timer}
 import scala.annotation.tailrec
 
 case class Day5(input: String) extends Problem {
-  private val pattern = ('a' to 'z').map(c => s"$c${c.toUpper}|${c.toUpper}$c").mkString("|")
-
   override def solve1(): Unit = {
-    val result = react(input)
+    val result = react(input.toList)
 
     println(s"Result 1: $result")
   }
@@ -18,16 +16,22 @@ case class Day5(input: String) extends Problem {
     val result = ('a' to 'z')
       .map(c => s"$c|${c.toUpper}")
       .map(pattern => input.replaceAll(pattern, ""))
-      .map(test => react(test))
+      .map(test => react(test.toList))
       .min
 
     println(s"Result 2: $result")
   }
 
   @tailrec
-  private def react(current: String, previous: String = ""): Int = {
-    if (current == previous) current.length
-    else react(current.replaceAll(pattern, ""), current)
+  private def react(current: List[Char], acc: List[Char] = Nil): Int = {
+    current match {
+      case Nil => acc.size
+      case head :: tail =>
+        val flipped = if (head.isUpper) head.toLower else head.toUpper
+
+        if (acc.nonEmpty && acc.head == flipped) react(tail, acc.tail)
+        else react(tail, head :: acc)
+    }
   }
 }
 
