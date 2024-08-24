@@ -5,6 +5,7 @@ import lib.Complex.ComplexIsIntegral
 
 import scala.collection.immutable.NumericRange
 import scala.language.implicitConversions
+import scala.math.Integral.Implicits.infixIntegralOps
 import scala.math.{ScalaNumber, ScalaNumericConversions}
 
 case class Complex(re: BigInt, im: BigInt) extends ScalaNumber with ScalaNumericConversions {
@@ -28,7 +29,18 @@ case class Complex(re: BigInt, im: BigInt) extends ScalaNumber with ScalaNumeric
   override def doubleValue: Double = re.toDouble
 
   def +(x: Int): Complex = ComplexIsIntegral.plus(this, Complex(x, 0))
+  def :+(x: Int): Complex = ComplexIsIntegral.plus(this, Complex(x, 0))
   def *(x: Int): Complex = ComplexIsIntegral.times(this, Complex(x, 0))
+  def :*(x: Int): Complex = ComplexIsIntegral.times(this, Complex(x, 0))
+
+  /**
+   * @param other The given Complex
+   * @return Manhattan distance between this and the given Complex
+   */
+  def mh(other: Complex): BigInt = {
+    val diff = this - other
+    diff.re.abs + diff.im.abs
+  }
 
   def to(end: Complex): IndexedSeq[Complex] = {
     (this.re to end.re).flatMap { n =>
