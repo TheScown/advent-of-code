@@ -26,32 +26,25 @@ case class Day9(input: String) extends Problem {
 
   private def solve(players: Int, lastMarble: Int): Long = {
     @tailrec
-    def helper(front: Vector[Int], back: Vector[Int], newMarble: Int, currentPlayer: Int, scores: Map[Int, Long]): Long = {
+    def helper(marbles: Vector[Int], newMarble: Int, currentPlayer: Int, scores: Map[Int, Long]): Long = {
       if (newMarble > lastMarble) scores.maxBy(_._2)._2
       else {
         if (newMarble % 23 == 0) {
-          val pointsScored = newMarble + front.head
-          val newCurrentMarble = front.tail.head
+          val pointsScored = newMarble + marbles(marbles.size - 8)
           val updatedScores = scores + (currentPlayer -> (scores.getOrElse(currentPlayer, 0L) + pointsScored))
-          val (frontOfBack, backOfBack) = back.splitAt(back.size - 7)
+          val (before, after) = marbles.splitAt(marbles.size - 8)
 
-          helper(backOfBack :+ newCurrentMarble, front.tail.tail ++ frontOfBack, newMarble + 1, (currentPlayer + 1) % players, updatedScores)
+          helper(after.tail.tail ++ before :+ after.tail.head, newMarble + 1, (currentPlayer + 1) % players, updatedScores)
         }
         else {
-          val (actualFront, actualBack) = if (back.isEmpty) (back, front) else (front, back)
-          val (frontAfterMove, backAfterMove) = (actualFront :+ actualBack.head :+ newMarble, actualBack.tail)
-          val (frontAfterCycle, backAfterCycle) = if (frontAfterMove.size > 8) {
-            (frontAfterMove.tail.tail, backAfterMove :+ frontAfterMove.head :+ frontAfterMove.tail.head)
-          } else {
-            (frontAfterMove, backAfterMove)
-          }
+          val updatedMarbles = marbles.tail :+ marbles.head :+ newMarble
 
-          helper(frontAfterCycle, backAfterCycle, newMarble + 1, (currentPlayer + 1) % players, scores)
+          helper(updatedMarbles, newMarble + 1, (currentPlayer + 1) % players, scores)
         }
       }
     }
 
-    helper(Vector(0), Vector(), 1, 0, Map())
+    helper(Vector(0), 1, 0, Map())
   }
 
   private def parse(): (Int, Int) = {
