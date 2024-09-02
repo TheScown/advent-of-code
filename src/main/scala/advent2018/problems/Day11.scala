@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package advent2018.problems
 
-import lib.{Files, Grid, Problem, Timer}
+import lib._
 
 case class Day11(input: String) extends Problem {
   override def solve1(): Unit = {
@@ -23,16 +23,15 @@ case class Day11(input: String) extends Problem {
     val serialNumber = input.toInt
 
     val grid = fuelCellGrid(serialNumber)
+    val summedArea = grid.summedArea
 
     val subGridSizes = 1 to 300
-    val combinedIndices = grid.indices.iterator.flatMap(c => subGridSizes.map(s => (c, s)))
+    val combinedIndices = summedArea.indices.iterator.flatMap(c => subGridSizes.map(s => (c, s)))
 
     val (resultAddress, resultSize) = combinedIndices.filter { case (c, s) =>
       c.re <= 300 - s && -c.im <= 300 - s
     }.maxBy { case (c, s) =>
-      val subGrid = grid.slice(c, s, s)
-      val sum = subGrid.values.flatten.sum
-      sum
+      Grid.areaSum(summedArea, c, s, s)
     }
 
     val result = s"${resultAddress.re + 1},${-resultAddress.im + 1},$resultSize"

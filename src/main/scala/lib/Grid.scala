@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package lib
 
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.Implicits.infixNumericOps
 
 /**
  * Grid utility class
@@ -22,6 +22,10 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     values(-address.im.toInt)(address.re.toInt)
   }
 
+  def getOrElse(address: Complex, defaultValue: T): T = {
+    if (address.re >= 0 && address.im <= 0) this(address) else defaultValue
+  }
+
   def updated(address: Complex, value: T): Grid[T] = {
     Grid(values.updated(-address.im.toInt, values(-address.im.toInt).updated(address.re.toInt, value)))
   }
@@ -36,6 +40,12 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     Grid(values.slice(-address.im.toInt, -address.im.toInt + height).map { row =>
       row.slice(address.re.toInt, address.re.toInt + width)
     })
+  }
+
+  def summedArea[B >: T](implicit num: Numeric[B]): Grid[B] = {
+    zipWithIndex.map { case (_, c) =>
+      slice(Complex.ZERO, c.re.toInt + 1, -c.im.toInt + 1).values.flatten.sum(num)
+    }
   }
 
   def neighboursWithDiagonals(address: Complex): IndexedSeq[Complex] = {
@@ -201,5 +211,27 @@ case object Grid {
         a.zip(b).map(p => p._1 ++ p._2)
       }
     })
+  }
+
+  /**
+   *
+   * @param summedArea A grid produced by calling areaSum on another grid
+   * @param address The top left corner of the region
+   * @param width The width of the region
+   * @param height The height of the region
+   * @return
+   */
+  def areaSum[T](summedArea: Grid[T], address: Complex, width: Int, height: Int)(implicit num: Numeric[T]): T = {
+    val bottomRightAddress = address + Complex(width - 1, -(height - 1))
+    val topRightAddress = address + Complex(width - 1, 1)
+    val bottomLeftAddress = address + Complex(-1, -(height - 1))
+    val topLeftAddress = address + Complex(-1, 1)
+
+    val bottomRight = summedArea(bottomRightAddress)
+    val topRight = summedArea.getOrElse(topRightAddress, num.zero)
+    val bottomLeft = summedArea.getOrElse(bottomLeftAddress, num.zero)
+    val topLeft = summedArea.getOrElse(topLeftAddress, num.zero)
+
+    bottomRight - topRight - bottomLeft + topLeft
   }
 }
