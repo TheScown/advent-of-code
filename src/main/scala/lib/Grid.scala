@@ -43,8 +43,8 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   }
 
   def summedArea[B >: T](implicit num: Numeric[B]): Grid[B] = {
-    zipWithIndex.map { case (_, c) =>
-      slice(Complex.ZERO, c.re.toInt + 1, -c.im.toInt + 1).values.flatten.sum(num)
+    indices.foldLeft(Grid.of(columnLength, rowLength, num.zero)) { (acc, c) =>
+      acc.updated(c, acc.getOrElse(c - Complex.ONE, num.zero) + acc.getOrElse(c + Complex.I, num.zero) - acc.getOrElse(c - Complex.ONE + Complex.I, num.zero) + this(c))
     }
   }
 
