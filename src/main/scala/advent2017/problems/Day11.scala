@@ -18,7 +18,7 @@ case class Day11(input: String) extends Problem {
       case "se" => (-Complex.ONE) - Complex.I
     }
 
-    val finalDestination = commands.reduce(_ + _)
+    val finalDestination = commands.sum
     val result = eisenhattanDistance(finalDestination)
 
     println(s"Result 1: $result")
