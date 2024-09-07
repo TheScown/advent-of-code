@@ -3,10 +3,10 @@ package lib
 
 import lib.TwoDTree.Orientation
 
-case class TwoDTree(point: Complex, orientation: Orientation, left: Option[TwoDTree], right: Option[TwoDTree]) {
-  def nearest(p: Complex): Complex = nearest(p, point)
+case class TwoDTree(point: Complex[Int], orientation: Orientation, left: Option[TwoDTree], right: Option[TwoDTree]) {
+  def nearest(p: Complex[Int]): Complex[Int] = nearest(p, point)
 
-  private def nearest(p: Complex, best: Complex): Complex = {
+  private def nearest(p: Complex[Int], best: Complex[Int]): Complex[Int] = {
     val currentDistance = p mh best
     val newDistance = p mh point
 
@@ -29,20 +29,20 @@ case class TwoDTree(point: Complex, orientation: Orientation, left: Option[TwoDT
 case object TwoDTree {
   sealed trait Orientation {
     val flip: Orientation
-    val comparator: Complex => BigInt
+    val comparator: Complex[Int] => Int
   }
   case object Vertical extends Orientation {
     val flip: Orientation = Horizontal
-    override val comparator: Complex => BigInt = _.re
+    override val comparator: Complex[Int] => Int = _.re
   }
   case object Horizontal extends Orientation {
     val flip: Orientation = Vertical
-    override val comparator: Complex => BigInt = _.im
+    override val comparator: Complex[Int] => Int = _.im
   }
 
-  def of(points: Vector[Complex]): TwoDTree = of(points, Vertical)
+  def of(points: Vector[Complex[Int]]): TwoDTree = of(points, Vertical)
 
-  private def of(points: Vector[Complex], orientation: Orientation): TwoDTree = {
+  private def of(points: Vector[Complex[Int]], orientation: Orientation): TwoDTree = {
     val pivot = points.head
     val (left, right) = points.partition(p => orientation.comparator(p) <= orientation.comparator(pivot))
 

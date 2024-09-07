@@ -4,12 +4,12 @@ package advent2015.problems
 import lib.{Complex, Files, Problem}
 
 import scala.annotation.tailrec
-import scala.math.Numeric.Implicits.infixNumericOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day3(input: String) extends Problem {
   override def solve1(): Unit = {
     @tailrec
-    def helper(currentAddress: Complex, instructions: String, acc: Set[Complex]): Set[Complex] = {
+    def helper(currentAddress: Complex[Int], instructions: String, acc: Set[Complex[Int]]): Set[Complex[Int]] = {
       if (instructions.isEmpty) acc
       else {
         val instruction = instructions.head
@@ -27,7 +27,7 @@ case class Day3(input: String) extends Problem {
 
   override def solve2(): Unit = {
     @tailrec
-    def helper(santaAddress: Complex, robotAddress: Complex, instructions: String, acc: Set[Complex]): Set[Complex] = {
+    def helper(santaAddress: Complex[Int], robotAddress: Complex[Int], instructions: String, acc: Set[Complex[Int]]): Set[Complex[Int]] = {
       if (instructions.isEmpty) acc
       else {
         val santaInstruction = instructions.head
@@ -46,7 +46,7 @@ case class Day3(input: String) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def addressDelta(instruction: Char) = instruction match {
+  private def addressDelta(instruction: Char): Complex[Int] = instruction match {
     case '^' => Complex.I
     case '>' => Complex.ONE
     case 'v' => -Complex.I

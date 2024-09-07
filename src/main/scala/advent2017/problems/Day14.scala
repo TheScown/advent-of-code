@@ -19,7 +19,7 @@ case class Day14(input: String) extends Problem {
 
     val grid = Grid(booleans)
 
-    val result = grid.zipWithIndex.foldLeft((0, Set[Complex]())) { (acc, value) =>
+    val result = grid.zipWithIndex.foldLeft((0, Set[Complex[Int]]())) { (acc, value) =>
       val (flag, address) = value
       val (count, visited) = acc
 

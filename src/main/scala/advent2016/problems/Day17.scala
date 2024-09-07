@@ -3,7 +3,7 @@ package advent2016.problems
 
 import lib._
 
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day17(input: String) extends Problem {
 
@@ -48,7 +48,7 @@ case class Day17(input: String) extends Problem {
         .filter { case State(Complex(re, im), _) => re >= 0 && re < 4 && im <= 0 && im > -4 }
   }
 
-  case class State(address: Complex, path: Vector[Char])
+  case class State(address: Complex[Int], path: Vector[Char])
 }
 
 case object Day17 extends App {

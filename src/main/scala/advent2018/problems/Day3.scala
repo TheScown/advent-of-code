@@ -51,11 +51,11 @@ case class Day3(input: Vector[String]) extends Problem {
     val pattern = "#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)".r
 
     input.map {
-      case pattern(id, re, im, width, height) => Claim(id.toInt, Complex(BigInt(re), -BigInt(im)), width.toInt, height.toInt)
+      case pattern(id, re, im, width, height) => Claim(id.toInt, Complex(re.toInt, -im.toInt), width.toInt, height.toInt)
     }
   }
 
-  case class Claim(id: Int, position: Complex, width: Int, height: Int)
+  case class Claim(id: Int, position: Complex[Int], width: Int, height: Int)
 }
 
 case object Day3 extends App {

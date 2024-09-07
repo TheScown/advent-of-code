@@ -2,6 +2,7 @@ package space.scown.adventofcode
 package lib
 
 import scala.math.Numeric.Implicits.infixNumericOps
+import scala.math.Numeric.IntIsIntegral
 
 /**
  * Grid utility class
@@ -16,39 +17,39 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
 
   val rowLength: Int = values.head.size
   val columnLength: Int = values.size
-  val centre: Complex = Complex(values.head.size / 2, -(values.size / 2))
+  val centre: Complex[Int] = Complex(values.head.size / 2, -(values.size / 2))
 
-  def apply(address: Complex): T = {
-    values(-address.im.toInt)(address.re.toInt)
+  def apply(address: Complex[Int]): T = {
+    values(-address.im)(address.re)
   }
 
-  def getOrElse(address: Complex, defaultValue: T): T = {
+  def getOrElse(address: Complex[Int], defaultValue: T): T = {
     if (address.re >= 0 && address.im <= 0) this(address) else defaultValue
   }
 
-  def updated(address: Complex, value: T): Grid[T] = {
-    Grid(values.updated(-address.im.toInt, values(-address.im.toInt).updated(address.re.toInt, value)))
+  def updated(address: Complex[Int], value: T): Grid[T] = {
+    Grid(values.updated(-address.im, values(-address.im).updated(address.re, value)))
   }
 
-  def updated(address: Complex, grid: Grid[T]): Grid[T] = {
+  def updated(address: Complex[Int], grid: Grid[T]): Grid[T] = {
     grid.zipWithIndex.map(p => (p._1, p._2 + address)).foldLeft(this) {(self, other) =>
       self.updated(other._2, other._1)
     }
   }
 
-  def slice(address: Complex, width: Int, height: Int): Grid[T] = {
-    Grid(values.slice(-address.im.toInt, -address.im.toInt + height).map { row =>
-      row.slice(address.re.toInt, address.re.toInt + width)
+  def slice(address: Complex[Int], width: Int, height: Int): Grid[T] = {
+    Grid(values.slice(-address.im, -address.im + height).map { row =>
+      row.slice(address.re, address.re + width)
     })
   }
 
   def summedArea[B >: T](implicit num: Numeric[B]): Grid[B] = {
     indices.foldLeft(Grid.of(columnLength, rowLength, num.zero)) { (acc, c) =>
-      acc.updated(c, acc.getOrElse(c - Complex.ONE, num.zero) + acc.getOrElse(c + Complex.I, num.zero) - acc.getOrElse(c - Complex.ONE + Complex.I, num.zero) + this(c))
+      acc.updated(c, acc.getOrElse(c - Complex.ONE(IntIsIntegral), num.zero) + acc.getOrElse(c + Complex.I(IntIsIntegral), num.zero) - acc.getOrElse(c - Complex.ONE(IntIsIntegral) + Complex.I(IntIsIntegral), num.zero) + this(c))
     }
   }
 
-  def neighboursWithDiagonals(address: Complex): IndexedSeq[Complex] = {
+  def neighboursWithDiagonals(address: Complex[Int]): IndexedSeq[Complex[Int]] = {
     if (wrapping) {
       throw new UnsupportedOperationException("Wrapping grid not yet supported")
     }
@@ -61,7 +62,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     } yield Complex(address.re + i, address.im + j)
   }
 
-  def neighbours(address: Complex): IndexedSeq[Complex] = {
+  def neighbours(address: Complex[Int]): IndexedSeq[Complex[Int]] = {
     if (wrapping) {
       throw new UnsupportedOperationException("Wrapping grid not yet supported")
     }
@@ -75,7 +76,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     } yield Complex(address.re + i, address.im + j)
   }
 
-  def next(address: Complex, delta: Complex): Complex = {
+  def next(address: Complex[Int], delta: Complex[Int]): Complex[Int] = {
     if (wrapping) {
       throw new UnsupportedOperationException("Wrapping grid not yet supported")
     }
@@ -137,7 +138,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   }
 
   // The standard zipWithIndex assumes integer indices
-  def zipWithIndex: Grid[(T, Complex)] = {
+  def zipWithIndex: Grid[(T, Complex[Int])] = {
     Grid(values.zipWithIndex.map { case (row, im) =>
       row.zipWithIndex.map {
         case (v, re) => (v, Complex(re, -im))
@@ -145,7 +146,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     })
   }
 
-  def indices: Vector[Complex] = {
+  def indices: Vector[Complex[Int]] = {
     values.zipWithIndex.flatMap { case (row, im) =>
       row.zipWithIndex.map {
         case (_, re) => Complex(re, -im)
@@ -163,13 +164,13 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }
   }
 
-  def indexOf(x: T): Option[Complex] = {
+  def indexOf(x: T): Option[Complex[Int]] = {
     zipWithIndex.values.flatten.find {
       case (v, _) => x == v
     }.map(_._2)
   }
 
-  def indexWhere(p: T => Boolean): Option[Complex] = {
+  def indexWhere(p: T => Boolean): Option[Complex[Int]] = {
     zipWithIndex.values.flatten.find {
       case (v, _) => p(v)
     }.map(_._2)
@@ -187,7 +188,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     rowLength * columnLength
   }
 
-  def toMap: Map[Complex, T] = {
+  def toMap: Map[Complex[Int], T] = {
     indices.map(i => i -> apply(i)).toMap
   }
 
@@ -221,7 +222,7 @@ case object Grid {
    * @param height The height of the region
    * @return
    */
-  def areaSum[T](summedArea: Grid[T], address: Complex, width: Int, height: Int)(implicit num: Numeric[T]): T = {
+  def areaSum[T](summedArea: Grid[T], address: Complex[Int], width: Int, height: Int)(implicit num: Numeric[T]): T = {
     val bottomRightAddress = address + Complex(width - 1, -(height - 1))
     val topRightAddress = address + Complex(width - 1, 1)
     val bottomLeftAddress = address + Complex(-1, -(height - 1))

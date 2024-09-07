@@ -4,7 +4,7 @@ package advent2017.problems
 import lib.{Complex, Files, Grid, Problem, Timer}
 
 import scala.annotation.tailrec
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day22(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -16,7 +16,7 @@ case class Day22(input: Vector[String]) extends Problem {
     val numberOfIterations = 10000
 
     @tailrec
-    def helper(position: Complex, direction: Complex, grid: Map[Complex, Char], acc: Int, iterationCount: Int): Int = {
+    def helper(position: Complex[Int], direction: Complex[Int], grid: Map[Complex[Int], Char], acc: Int, iterationCount: Int): Int = {
       if (iterationCount == numberOfIterations) acc
       else {
         grid.getOrElse(position, '.') match {
@@ -48,7 +48,7 @@ case class Day22(input: Vector[String]) extends Problem {
     val numberOfIterations = 10000000
 
     @tailrec
-    def helper(position: Complex, direction: Complex, grid: Map[Complex, State], acc: Int, iterationCount: Int): Int = {
+    def helper(position: Complex[Int], direction: Complex[Int], grid: Map[Complex[Int], State], acc: Int, iterationCount: Int): Int = {
       if (iterationCount == numberOfIterations) acc
       else {
         grid.getOrElse(position, Clean) match {

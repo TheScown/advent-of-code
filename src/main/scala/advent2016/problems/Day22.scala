@@ -3,8 +3,6 @@ package advent2016.problems
 
 import lib._
 
-import scala.math.Integral.Implicits.infixIntegralOps
-
 case class Day22(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val nodes = parse()
@@ -31,7 +29,7 @@ case class Day22(input: Vector[String]) extends Problem {
     val maxX = nodes.last.address.re
     val maxY = -nodes.last.address.im
 
-    val initialGrid = Grid(nodes.grouped(maxY.toInt + 1).toVector.transpose)
+    val initialGrid = Grid(nodes.grouped(maxY + 1).toVector.transpose)
     val emptyNode = initialGrid.indexWhere(_.used == 0).get
     val initialState = State(initialGrid, 0, emptyNode, Vector())
     val intermediate = intermediateAddress(nodes, initialGrid)
@@ -78,7 +76,7 @@ case class Day22(input: Vector[String]) extends Problem {
   /**
    * Find the address at the end of the wall so we can efficiently navigate round it
    */
-  private def intermediateAddress(nodes: Vector[Node], initialGrid: Grid[Node]): Complex = {
+  private def intermediateAddress(nodes: Vector[Node], initialGrid: Grid[Node]): Complex[Int] = {
     val walls = nodes.filter {
       case Node(address, used, _, _) =>
         val neighbours = initialGrid.neighbours(address)
@@ -97,11 +95,11 @@ case class Day22(input: Vector[String]) extends Problem {
     val pattern = "/dev/grid/node-x(\\d+)-y(\\d+)\\s+(\\d+)T\\s+(\\d+)T\\s+(\\d+)T\\s+\\d+%".r
 
     input.drop(2).map {
-      case pattern(x, y, size, used, available) => Node(Complex(BigInt(x), -BigInt(y)), used.toInt, available.toInt, size.toInt)
+      case pattern(x, y, size, used, available) => Node(Complex(x.toInt, -y.toInt), used.toInt, available.toInt, size.toInt)
     }
   }
 
-  case class Node(address: Complex, used: Int, available: Int, size: Int) {
+  case class Node(address: Complex[Int], used: Int, available: Int, size: Int) {
     def moveFrom(other: Node): Node = this.copy(
       used = other.used,
       available = size - other.used,
@@ -109,12 +107,12 @@ case class Day22(input: Vector[String]) extends Problem {
     )
   }
 
-  case class State(grid: Grid[Node], moves: Int, emptyAddress: Complex, history: Vector[Complex]) {
-    def score(targetAddress: Complex): Int = {
+  case class State(grid: Grid[Node], moves: Int, emptyAddress: Complex[Int], history: Vector[Complex[Int]]) {
+    def score(targetAddress: Complex[Int]): Int = {
       val targetLocation = grid.indexWhere(_.address == targetAddress).get
       val emptyToTarget = targetLocation - emptyAddress
       // Cost is the distance to the target, plus 5 moves to get the target to the goal, plus the moves taken
-      moves + (emptyToTarget.re.abs + emptyToTarget.im.abs).toInt + 5 * (targetLocation.re.abs + targetLocation.im.abs).toInt
+      moves + (emptyToTarget.re.abs + emptyToTarget.im.abs) + 5 * (targetLocation.re.abs + targetLocation.im.abs)
     }
 
     override def equals(obj: Any): Boolean = obj match {

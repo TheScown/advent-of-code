@@ -4,7 +4,7 @@ package advent2017.problems
 import lib.{Complex, Files, Problem}
 
 import scala.annotation.tailrec
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day11(input: String) extends Problem {
   override def solve1(): Unit = {
@@ -18,7 +18,7 @@ case class Day11(input: String) extends Problem {
       case "se" => (-Complex.ONE) - Complex.I
     }
 
-    val finalDestination = commands.sum
+    val finalDestination = commands.reduce(_ + _)
     val result = eisenhattanDistance(finalDestination)
 
     println(s"Result 1: $result")
@@ -35,7 +35,7 @@ case class Day11(input: String) extends Problem {
     }
 
     @tailrec
-    def helper(commands: List[Complex], current: Complex, max: BigInt): BigInt = {
+    def helper(commands: List[Complex[Int]], current: Complex[Int], max: BigInt): BigInt = {
       if (commands.isEmpty) max
       else {
         val next = current + commands.head
@@ -51,11 +51,11 @@ case class Day11(input: String) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def eisenhattanDistance(value: Complex): BigInt = {
+  private def eisenhattanDistance(value: Complex[Int]): Int = {
     val reAbs = value.re.abs
     val imAbs = value.im.abs
 
-    if (value.re.signum != value.im.signum) reAbs + imAbs
+    if (value.re.sign != value.im.sign) reAbs + imAbs
     else if (reAbs >= imAbs) reAbs else imAbs
   }
 }

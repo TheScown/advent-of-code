@@ -3,7 +3,7 @@ package advent2016.problems
 
 import lib.{Complex, Files, Grid, Problem}
 
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day2(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {

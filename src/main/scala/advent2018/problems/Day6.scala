@@ -3,14 +3,19 @@ package advent2018.problems
 
 import lib.{Complex, Files, Grid, Problem}
 
+import scala.math.Numeric.IntIsIntegral
+
 case class Day6(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val points = parse()
     val maxRe = points.maxBy(_.re).re
     val minIm = points.minBy(_.im).im
-    val grid = Grid.of(-minIm.toInt + 1, maxRe.toInt + 1, 0)
+    val grid = Grid.of(-minIm + 1, maxRe + 1, 0)
     val finalGrid = grid.zipWithIndex.map { case (_, address) =>
-      val distances = points.map(p => (p mh address, p)).sorted
+      val pairs = points.map(p => (p mh address, p))
+      val distances = pairs.sorted { (x: (Int, Complex[Int]), y: (Int, Complex[Int])) =>
+        x._1.compareTo(y._1)
+      }
 
       if (distances.head._1 == distances.tail.head._1) None
       else Some(distances.head._2)
@@ -33,7 +38,7 @@ case class Day6(input: Vector[String]) extends Problem {
     val points = parse()
     val maxRe = points.maxBy(_.re).re
     val minIm = points.minBy(_.im).im
-    val grid = Grid.of(-minIm.toInt + 1, maxRe.toInt + 1, 0)
+    val grid = Grid.of(-minIm + 1, maxRe + 1, 0)
     val finalGrid = grid.zipWithIndex.map { case (_, address) =>
       points.map(p => p mh address).sum
     }
@@ -42,10 +47,10 @@ case class Day6(input: Vector[String]) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def parse(): Vector[Complex] = {
+  private def parse(): Vector[Complex[Int]] = {
     input.map { line =>
       val parts = line.split(", ")
-      Complex(BigInt(parts(0)), -BigInt(parts(1)))
+      Complex(parts(0).toInt, -parts(1).toInt)
     }
   }
 }

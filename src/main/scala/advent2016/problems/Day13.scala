@@ -3,7 +3,8 @@ package advent2016.problems
 
 import lib._
 
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.BigInt.int2bigInt
+import scala.math.Numeric.IntIsIntegral
 
 case class Day13(input: String) extends Problem {
   private val favouriteNumber = input.toInt
@@ -35,7 +36,7 @@ case class Day13(input: String) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def validNeighbours(address: Complex) = {
+  private def validNeighbours(address: Complex[Int]) = {
     Seq(Complex.ONE, -Complex.ONE, Complex.I, -Complex.I)
       .map(delta => address + delta)
       .filter { c =>
@@ -43,14 +44,14 @@ case class Day13(input: String) extends Problem {
       }
   }
 
-  private def isWall(c: Complex): Boolean = c match {
+  private def isWall(c: Complex[Int]): Boolean = c match {
     // (x*x + 3*x + 2*x*y + y + y*y) + favouriteNumber, wall if odd bit count
     case Complex(x, y) =>
       val number = x * x + 3 * x + 2 * x * y + y + y * y + favouriteNumber
       number.bitCount % 2 == 1
   }
 
-  case class State(address: Complex, moves: Int) {
+  case class State(address: Complex[Int], moves: Int) {
     override def equals(obj: Any): Boolean = {
       if (!obj.isInstanceOf[State]) false
       else {

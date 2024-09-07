@@ -45,7 +45,7 @@ case class Day11(input: String) extends Problem {
       val y = -address.im + 1
       val rackId = 10 + x
       val powerLevel = ((y * rackId) + serialNumber) * rackId
-      val powerLevelString = powerLevel.toString(10)
+      val powerLevelString = powerLevel.toString
       val hundreds = powerLevelString.charAt(powerLevelString.length - 3).asDigit
       hundreds - 5
     }

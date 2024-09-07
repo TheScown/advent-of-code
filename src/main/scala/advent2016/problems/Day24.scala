@@ -66,7 +66,7 @@ case class Day24(input: Vector[String]) extends Problem {
     })
   }
 
-  case class State(current: Complex, moves: Int) {
+  case class State(current: Complex[Int], moves: Int) {
     override def equals(obj: Any): Boolean = obj match {
       case State(c, _) =>  current == c
       case _ => false

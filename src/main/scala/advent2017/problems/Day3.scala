@@ -4,14 +4,14 @@ package advent2017.problems
 import lib.{Complex, Files, Problem}
 
 import scala.annotation.tailrec
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day3(input: String) extends Problem {
   override def solve1(): Unit = {
     val target = input.toInt
 
     @tailrec
-    def helper(current: Complex, remaining: Int, distance: Int, direction: Complex): Complex = {
+    def helper(current: Complex[Int], remaining: Int, distance: Int, direction: Complex[Int]): Complex[Int] = {
       if (remaining <= distance) {
         current + (direction * remaining)
       }
@@ -34,7 +34,7 @@ case class Day3(input: String) extends Problem {
     val target = input.toInt
 
     @tailrec
-    def helper(current: Complex, stepsToTurn: Int, initialStepsToTurn: Int, direction: Complex, values: Map[Complex, Int]): Int = {
+    def helper(current: Complex[Int], stepsToTurn: Int, initialStepsToTurn: Int, direction: Complex[Int], values: Map[Complex[Int], Int]): Int = {
       val neighbourValues = for {
         i <- -1 to 1
         j <- -1 to 1

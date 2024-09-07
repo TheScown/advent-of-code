@@ -6,7 +6,7 @@ import lib.{Complex, Files, Problem, Timer}
 case class Day6(input: Vector[String]) extends Problem {
 
   override def solve1(): Unit = {
-    val result = input.foldLeft(Set[Complex]()) { (set, line) =>
+    val result = input.foldLeft(Set[Complex[Int]]()) { (set, line) =>
       parse(line) match {
         case On(start, end) =>
           set ++ (start to end)
@@ -24,7 +24,7 @@ case class Day6(input: Vector[String]) extends Problem {
   }
 
   override def solve2(): Unit = {
-    val result = input.foldLeft(Map[Complex, Int]()) { (map, line) =>
+    val result = input.foldLeft(Map[Complex[Int], Int]()) { (map, line) =>
       parse(line) match {
         case On(start, end) =>
           (start to end).foldLeft(map) { (map, z) =>
@@ -53,8 +53,8 @@ case class Day6(input: Vector[String]) extends Problem {
     val pattern = "(turn on|turn off|toggle) (\\d+),(\\d+) through (\\d+),(\\d+)".r
     val matches = pattern.findFirstMatchIn(line).get
 
-    val start = Complex(BigInt(matches.group(2)), BigInt(matches.group(3)))
-    val end = Complex(BigInt(matches.group(4)), BigInt(matches.group(5)))
+    val start = Complex(matches.group(2).toInt, matches.group(3).toInt)
+    val end = Complex(matches.group(4).toInt, matches.group(5).toInt)
 
     matches.group(1) match {
       case "turn on" => On(start, end)
@@ -65,12 +65,12 @@ case class Day6(input: Vector[String]) extends Problem {
 
 
   private sealed trait Operation {
-    def start: Complex
-    def end: Complex
+    def start: Complex[Int]
+    def end: Complex[Int]
   }
-  private case class On(start: Complex, end: Complex) extends Operation
-  private case class Off(start: Complex, end: Complex) extends Operation
-  private case class Toggle(start: Complex, end: Complex) extends Operation
+  private case class On(start: Complex[Int], end: Complex[Int]) extends Operation
+  private case class Off(start: Complex[Int], end: Complex[Int]) extends Operation
+  private case class Toggle(start: Complex[Int], end: Complex[Int]) extends Operation
 
 }
 

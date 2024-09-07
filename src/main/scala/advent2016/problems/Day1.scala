@@ -4,8 +4,7 @@ package advent2016.problems
 import lib.{Complex, Files, Problem}
 
 import scala.annotation.tailrec
-import scala.collection.immutable.NumericRange
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day1(input: String) extends Problem {
   override def solve1(): Unit = {
@@ -27,7 +26,7 @@ case class Day1(input: String) extends Problem {
     val instructions = parse()
 
     @tailrec
-    def helper(position: Complex, direction: Complex, visited: Set[Complex], instructions: Seq[Instruction]): Complex = {
+    def helper(position: Complex[Int], direction: Complex[Int], visited: Set[Complex[Int]], instructions: Seq[Instruction]): Complex[Int] = {
       val nextInstruction = instructions.head
       val newDirection = nextInstruction.direction * direction
       val newPosition = position + (newDirection * nextInstruction.distance)
@@ -59,7 +58,7 @@ case class Day1(input: String) extends Problem {
     }
   }
 
-  case class Instruction(direction: Complex, distance: Int)
+  case class Instruction(direction: Complex[Int], distance: Int)
 }
 
 case object Day1 extends App {

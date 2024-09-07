@@ -4,7 +4,8 @@ package advent2017.problems
 import lib.{Complex, Files, Grid, Problem}
 
 import scala.annotation.tailrec
-import scala.math.Integral.Implicits.infixIntegralOps
+import scala.math.Numeric.IntIsIntegral
+
 
 case class Day19(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -14,7 +15,7 @@ case class Day19(input: Vector[String]) extends Problem {
     val pathCharacters = Set('-', '|')
 
     @tailrec
-    def helper(position: Complex, direction: Complex, acc: Vector[Char]): Vector[Char] = {
+    def helper(position: Complex[Int], direction: Complex[Int], acc: Vector[Char]): Vector[Char] = {
       if (grid(position) == '+') {
         val nextPosition = grid.neighbours(position)
           .filterNot(grid(_) == ' ')
@@ -39,7 +40,7 @@ case class Day19(input: Vector[String]) extends Problem {
     val start = grid.indexOf('|').get
 
     @tailrec
-    def helper(position: Complex, direction: Complex, acc: Int): Int = {
+    def helper(position: Complex[Int], direction: Complex[Int], acc: Int): Int = {
       if (grid(position) == '+') {
         val nextPosition = grid.neighbours(position)
           .filterNot(grid(_) == ' ')

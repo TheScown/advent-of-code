@@ -1,12 +1,10 @@
 package space.scown.adventofcode
 package advent2018.problems
 
-import lib.Gui.getPanelWindow
 import lib._
 
-import javax.swing.WindowConstants
 import scala.annotation.tailrec
-import scala.math.Numeric.Implicits.infixNumericOps
+import scala.math.Numeric.IntIsIntegral
 
 case class Day13(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -38,7 +36,7 @@ case class Day13(input: Vector[String]) extends Problem {
 //    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
 
     @tailrec
-    def turnHelper(carts: Vector[Cart]): Complex = {
+    def turnHelper(carts: Vector[Cart]): Complex[Int] = {
       val sortedCarts = carts.sorted { (x: Cart, y: Cart) =>
         if (x.position.im < y.position.im) 1
         else if (x.position.im > y.position.im) -1
@@ -50,7 +48,7 @@ case class Day13(input: Vector[String]) extends Problem {
       }
 
       @tailrec
-      def cartHelper(remainingCarts: Vector[Cart], acc: Vector[Cart]): Either[Vector[Cart], Complex] = {
+      def cartHelper(remainingCarts: Vector[Cart], acc: Vector[Cart]): Either[Vector[Cart], Complex[Int]] = {
         if (remainingCarts.isEmpty) Left(acc)
         else {
           val cart = remainingCarts.head
@@ -69,8 +67,8 @@ case class Day13(input: Vector[String]) extends Problem {
               cart.nextDirection
             )
             case '+' => Cart(newPosition, cart.direction * cart.nextDirection, cart.nextDirection match {
-              case Complex.I => Complex.ONE
-              case Complex.ONE => -Complex.I
+              case Complex(re, im) if re == 0 && im == 1 => Complex.ONE
+              case Complex(re, im) if re == 1 && im == 0 => -Complex.I
               case Complex(re, im) if re == 0 && im == -1 => Complex.I
             })
             case _ => cart.copy(position = newPosition)
@@ -123,7 +121,7 @@ case class Day13(input: Vector[String]) extends Problem {
     }
 
     @tailrec
-    def turnHelper(carts: Vector[Cart]): Complex = {
+    def turnHelper(carts: Vector[Cart]): Complex[Int] = {
       if (carts.size == 1) carts.head.position
       else {
         val sortedCarts = carts.sorted { (x: Cart, y: Cart) =>
@@ -156,9 +154,9 @@ case class Day13(input: Vector[String]) extends Problem {
                 cart.nextDirection
               )
               case '+' => Cart(newPosition, cart.direction * cart.nextDirection, cart.nextDirection match {
-                case Complex.I => Complex.ONE
-                case Complex.ONE => -Complex.I
-                case Complex(re, im) if re == 0 && im == -1 => Complex.I
+                case Complex(0, 1) => Complex.ONE
+                case Complex(1, 0) => -Complex.I
+                case Complex(0, -1) => Complex.I
               })
               case _ => cart.copy(position = newPosition)
             }
@@ -190,16 +188,16 @@ case class Day13(input: Vector[String]) extends Problem {
     Grid(paddedLines.map(_.toVector))
   }
 
-  private case class Cart(position: Complex, direction: Complex, nextDirection: Complex)
+  private case class Cart(position: Complex[Int], direction: Complex[Int], nextDirection: Complex[Int])
 
   private class CartGridPanel(grid: Grid[Char], width: Int, height: Int) extends GridPanel[Char](grid, width, height) {
-    def setGrid(grid: Grid[Char], carts: Vector[Cart], collision: Option[Complex]): Unit = {
+    def setGrid(grid: Grid[Char], carts: Vector[Cart], collision: Option[Complex[Int]]): Unit = {
       val updatedGrid = carts.foldLeft(grid) { (grid, cart) =>
         grid.updated(cart.position, cart.direction match {
-          case Complex(re, im) if re == -1 && im == 0 => '<'
-          case Complex.ONE => '>'
-          case Complex.I => '^'
-          case Complex(re, im) if re == 0 && im == -1 => 'v'
+          case Complex(-1, 0) => '<'
+          case Complex(1, 0) => '>'
+          case Complex(0, 1) => '^'
+          case Complex(0, -1) => 'v'
         })
       }
 
