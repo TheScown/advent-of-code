@@ -145,12 +145,12 @@ case class Day13(input: Vector[String]) extends Problem {
             val newCart = nextTrack match {
               case '\\' => Cart(
                 newPosition,
-                if (cart.direction.isReal) cart.direction * -Complex.I else cart.direction * Complex.I,
+                -Complex.I / cart.direction,
                 cart.nextDirection
               )
               case '/' => Cart(
                 newPosition,
-                if (cart.direction.isReal) cart.direction * Complex.I else cart.direction * -Complex.I,
+                Complex.I / cart.direction,
                 cart.nextDirection
               )
               case '+' => Cart(newPosition, cart.direction * cart.nextDirection, cart.nextDirection match {

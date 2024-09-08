@@ -5,7 +5,7 @@ import scala.collection.immutable.NumericRange
 import scala.language.implicitConversions
 import scala.math.Integral.Implicits.infixIntegralOps
 
-case class Complex[T](re: T, im: T)(implicit n: Integral[T]) {
+case class Complex[T](re: T, im: T)(implicit n: Integral[T]) extends Ordered[Complex[T]] {
 
   val isReal: Boolean = im == n.zero
 
@@ -41,6 +41,16 @@ case class Complex[T](re: T, im: T)(implicit n: Integral[T]) {
   def to(end: Complex[T]): IndexedSeq[Complex[T]] = {
     NumericRange.inclusive(this.re, end.re, n.one)(n).flatMap { re =>
       NumericRange.inclusive(this.im, end.im, n.one)(n).map(im => Complex(re, im))
+    }
+  }
+
+  override def compare(that: Complex[T]): Int = {
+    if (n.lt(im, that.im)) -1
+    else if (n.gt(im, that.im)) 1
+    else {
+      if (n.lt(re, that.re)) -1
+      else if (n.gt(re, that.re)) 1
+      else 0
     }
   }
 }
@@ -85,18 +95,9 @@ case object Complex {
     def toLong(x: Complex[Int]): Long = x.re
     def toFloat(x: Complex[Int]): Float = x.re
     def toDouble(x: Complex[Int]): Double = x.re
+    def compare(x: Complex[Int], y: Complex[Int]): Int = x.compare(y)
   }
-  implicit object ComplexIntIsIntegral extends ComplexIntIsIntegral {
-    override def compare(x: Complex[Int], y: Complex[Int]): Int = {
-      if (x.im < y.im) -1
-      else if (x.im > y.im) 1
-      else {
-        if (x.re < y.re) -1
-        else if (x.im > y.im) 1
-        else 0
-      }
-    }
-  }
+  implicit object ComplexIntIsIntegral extends ComplexIntIsIntegral {}
 
   trait ComplexLongIsIntegral extends Integral[Complex[Long]] {
     def plus(x: Complex[Long], y: Complex[Long]): Complex[Long] = x + y
@@ -111,17 +112,8 @@ case object Complex {
     def toLong(x: Complex[Long]): Long = x.re
     def toFloat(x: Complex[Long]): Float = x.re
     def toDouble(x: Complex[Long]): Double = x.re
+    def compare(x: Complex[Long], y: Complex[Long]): Int = x.compare(y)
   }
-  implicit object ComplexLongIsIntegral extends ComplexLongIsIntegral {
-    override def compare(x: Complex[Long], y: Complex[Long]): Int = {
-      if (x.im < y.im) -1
-      else if (x.im > y.im) 1
-      else {
-        if (x.re < y.re) -1
-        else if (x.im > y.im) 1
-        else 0
-      }
-    }
-  }
+  implicit object ComplexLongIsIntegral extends ComplexLongIsIntegral {}
 
 }
