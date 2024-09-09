@@ -8,7 +8,7 @@ case class Day25(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val instructions = parse()
 
-    val result = Integers.naturalNumbers.find { i =>
+    val result = Integers.naturalNumbers[Int].find { i =>
       val list = run(instructions, Map(('a', i), ('b', 0), ('c', 0), ('d', 0))).take(8)
       list.toVector == Vector(0, 1, 0, 1, 0, 1, 0, 1)
     }.get

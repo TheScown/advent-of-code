@@ -21,7 +21,7 @@ case class Day4(input: String) extends Problem {
   }
 
   private def findLeadingZeros(pattern: Regex) = {
-    val result = naturalNumbers.iterator.find { n =>
+    val result = naturalNumbers[Int].iterator.find { n =>
       val s = input + n.toString
       val hash = md5(s)
       pattern.findFirstMatchIn(hash).isDefined

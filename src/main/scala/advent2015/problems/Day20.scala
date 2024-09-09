@@ -9,7 +9,7 @@ case class Day20(input: String) extends Problem {
 
   override def solve1(): Unit = {
     val target = input.toInt / 10
-    val result = Integers.naturalNumbers.find { n =>
+    val result = Integers.naturalNumbers[Int].find { n =>
       Integers.factors(n).sum > target
     }.get
 
@@ -38,7 +38,7 @@ case class Day20(input: String) extends Problem {
         }
     }
 
-    val result = helper(Integers.naturalNumbers, Map())
+    val result = helper(Integers.naturalNumbers[Int], Map())
 
     println(s"Result 2: $result")
   }

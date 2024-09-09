@@ -7,13 +7,13 @@ import scala.annotation.tailrec
 
 case class Day14(input: String) extends Problem {
   override def solve1(): Unit = {
-    val result = solve(Integers.naturalNumbers, Map(), Vector())(Crypto.md5)
+    val result = solve(Integers.naturalNumbers[Int], Map(), Vector())(Crypto.md5)
 
     println(s"Result 1: $result")
   }
 
   override def solve2(): Unit = {
-    val result = solve(Integers.naturalNumbers, Map(), Vector()) { s =>
+    val result = solve(Integers.naturalNumbers[Int], Map(), Vector()) { s =>
       (0 until 2017).foldLeft(s)((s,_) => Crypto.md5(s))
     }
 

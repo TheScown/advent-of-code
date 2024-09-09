@@ -8,7 +8,7 @@ import scala.util.Random
 
 case class Day5(input: String) extends Problem {
   override def solve1(): Unit = {
-    val result = Integers.naturalNumbers
+    val result = Integers.naturalNumbers[Int]
       .map(n => Crypto.md5(input + n))
       .filter(s => s.startsWith("00000"))
       .take(8)
@@ -20,7 +20,7 @@ case class Day5(input: String) extends Problem {
   }
 
   override def solve2(): Unit = {
-    val characters = Integers.naturalNumbers
+    val characters = Integers.naturalNumbers[Int]
       .map(n => Crypto.md5(input + n))
 
     @tailrec

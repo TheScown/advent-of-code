@@ -15,7 +15,7 @@ case class Day13(input: Vector[String]) extends Problem {
   override def solve2(): Unit = {
     val pairs = parse()
 
-    val result = Integers.naturalNumbers.find(n => triggeredLayers(pairs, n).isEmpty).get
+    val result = Integers.naturalNumbers[Int].find(n => triggeredLayers(pairs, n).isEmpty).get
 
     println(s"Result 2: $result")
   }
