@@ -235,4 +235,17 @@ case object Grid {
 
     bottomRight - topRight - bottomLeft + topLeft
   }
+
+  /**
+   * @return An Ordering of grid indices in reading order (left to right, top to bottom)
+   */
+  def ordering: Ordering[Complex[Int]] = { (x: Complex[Int], y: Complex[Int]) =>
+    if (x.im < y.im) 1
+    else if (x.im > y.im) -1
+    else {
+      if (x.re < y.re) -1
+      else if (x.im > y.im) 1
+      else 0
+    }
+  }
 }

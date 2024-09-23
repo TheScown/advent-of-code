@@ -124,15 +124,7 @@ case class Day13(input: Vector[String]) extends Problem {
     def turnHelper(carts: Vector[Cart]): Complex[Int] = {
       if (carts.size == 1) carts.head.position
       else {
-        val sortedCarts = carts.sorted { (x: Cart, y: Cart) =>
-          if (x.position.im < y.position.im) 1
-          else if (x.position.im > y.position.im) -1
-          else {
-            if (x.position.re < y.position.re) -1
-            else if (x.position.im > y.position.im) 1
-            else 0
-          }
-        }
+        val sortedCarts = carts.sortBy(_.position)(Grid.ordering)
 
         @tailrec
         def cartHelper(remainingCarts: Vector[Cart], acc: Vector[Cart]): Vector[Cart] = {
