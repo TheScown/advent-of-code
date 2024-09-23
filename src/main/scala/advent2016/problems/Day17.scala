@@ -16,7 +16,7 @@ case class Day17(input: String) extends Problem {
       state.address == Complex(3, -3)
     }
 
-    val result = BFS.solve(start, isComplete)(validNeighbours).path.mkString("")
+    val result = BFS.solve(start, isComplete)(validNeighbours).get.path.mkString("")
 
     println(s"Result 1: $result")
   }

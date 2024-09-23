@@ -52,7 +52,7 @@ case class Day24(input: Vector[String]) extends Problem {
           grid.neighbours(address)
             .filter(grid.apply(_) != '#')
             .map(State(_, moves + 1))
-      }.moves
+      }.get.moves
 
       Edge(Node(i), Node(j), distance)
     }

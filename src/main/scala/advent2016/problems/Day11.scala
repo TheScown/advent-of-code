@@ -54,7 +54,7 @@ case class Day11(input: Vector[String]) extends Problem {
 
         newStates
     }
-    result.moves
+    result.get.moves
   }
 
   private def parse(): Vector[Floor] = {

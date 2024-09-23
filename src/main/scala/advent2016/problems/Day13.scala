@@ -19,7 +19,7 @@ case class Day13(input: String) extends Problem {
         val neighbours = validNeighbours(address)
 
         neighbours.map(State(_, moves + 1))
-    }.moves + 1
+    }.get.moves + 1
 
     println(s"Result 1: $result")
   }
