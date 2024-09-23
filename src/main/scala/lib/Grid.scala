@@ -244,7 +244,7 @@ case object Grid {
     else if (x.im > y.im) -1
     else {
       if (x.re < y.re) -1
-      else if (x.im > y.im) 1
+      else if (x.re > y.re) 1
       else 0
     }
   }
