@@ -6,12 +6,14 @@ import lib.{Files, Problem}
 import scala.annotation.tailrec
 
 case class Day16(input: Vector[String]) extends Problem {
+  private type Function = (Vector[Int], Int, Int, Int) => Vector[Int]
+
   override def solve1(): Unit = {
     val (samples, _) = parse()
 
     val result = samples.count {
       case Sample(before, instruction, after) =>
-        val results = functions
+        val results = functions.toVector
           .map(f => f(before, instruction.a, instruction.b, instruction.c))
         val matchingResults = results.filter(_ == after)
         matchingResults.size >= 3
@@ -21,7 +23,40 @@ case class Day16(input: Vector[String]) extends Problem {
   }
 
   override def solve2(): Unit = {
+    val (samples, instructions) = parse()
 
+    @tailrec
+    def deduceInstructions(samples: Vector[Sample], functions: Set[Function], acc: Map[Int, Function]): Map[Int, Function] = {
+      if (samples.isEmpty) acc
+      else {
+        val knownSamples = samples.map {
+          case Sample(before, instruction, after) =>
+            (instruction.opcode, functions.filter(f => f(before, instruction.a, instruction.b, instruction.c) == after))
+        }.filter {
+          case (_, fs) => fs.size == 1
+        }.map {
+          case (opcode, fs) => (opcode, fs.head)
+        }
+
+        val opcodesToRemove = knownSamples.map(_._1).toSet
+        val functionsToRemove = knownSamples.map(_._2).toSet
+
+        deduceInstructions(
+          samples.filterNot(s => opcodesToRemove.contains(s.instruction.opcode)),
+          functions.diff(functionsToRemove),
+          acc ++ knownSamples
+        )
+      }
+    }
+
+    val instructionMap = deduceInstructions(samples, functions, Map())
+
+    val result = instructions.foldLeft(Vector.fill(4)(0)) { (registers, instruction) =>
+      val function = instructionMap(instruction.opcode)
+      function(registers, instruction.a, instruction.b, instruction.c)
+    }.head
+
+    println(s"Result 2: $result")
   }
 
   private def parse(): (Vector[Sample], Vector[Instruction]) = {
@@ -124,7 +159,7 @@ case class Day16(input: Vector[String]) extends Problem {
     registers.updated(c, if (registers(a) == registers(b)) 1 else 0)
   }
 
-  private val functions = Vector(
+  private val functions = Set(
     addr _,
     addi _,
     mulr _,
