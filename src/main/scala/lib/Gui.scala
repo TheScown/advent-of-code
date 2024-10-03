@@ -2,7 +2,7 @@ package space.scown.adventofcode
 package lib
 
 import java.awt.image.BufferedImage
-import java.awt.{BorderLayout, Dimension, FlowLayout, Image}
+import java.awt.{BorderLayout, Image}
 import javax.swing._
 
 case object Gui {
@@ -28,10 +28,10 @@ case object Gui {
     val frame = new JFrame()
     frame.setVisible(true)
     // Allow for title bar
-    frame.setLayout(new FlowLayout())
+//    frame.setLayout(new GridBagLayout())
     frame.setSize(width, height + frame.getInsets.top)
     frame.setLocationRelativeTo(null)
-    frame.getContentPane.add(panel)
+    frame.getContentPane.add(new JScrollPane(panel))
     frame.pack()
 
     frame

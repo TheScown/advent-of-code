@@ -1,15 +1,17 @@
 package space.scown.adventofcode
 package lib
 
-import java.awt.{Color, Dimension, Font, Graphics}
+import java.awt.{Color, Dimension, Font, Graphics, GridBagLayout}
 import javax.swing.JPanel
 
 class GridPanel[T](var grid: Grid[T], width: Int, height: Int) extends JPanel() {
 
   setPreferredSize(new Dimension(width, height))
+  setLayout(new GridBagLayout())
 
   def setGrid(grid: Grid[T]): Unit = {
     this.grid = grid
+    this.repaint()
   }
 
   override def paintComponent(g: Graphics): Unit = {
