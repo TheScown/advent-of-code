@@ -1,6 +1,8 @@
 package space.scown.adventofcode
 package advent2018.problems
 
+import advent2018.devicecode.Instruction
+import advent2018.devicecode.Instruction._
 import lib.{Files, Problem}
 
 import scala.annotation.tailrec
@@ -59,12 +61,12 @@ case class Day16(input: Vector[String]) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def parse(): (Vector[Sample], Vector[Instruction]) = {
+  private def parse(): (Vector[Sample], Vector[Instruction[Int]]) = {
     @tailrec
     def helper(
       remainder: Vector[String],
       samples: Vector[Sample]
-    ): (Vector[Sample], Vector[Instruction]) = {
+    ): (Vector[Sample], Vector[Instruction[Int]]) = {
       if (remainder.tail.head.isEmpty) {
         (samples, remainder.tail.dropWhile(_.isEmpty).map(parseInstruction))
       }
@@ -88,76 +90,11 @@ case class Day16(input: Vector[String]) extends Problem {
     helper(input, Vector())
   }
 
-  private def parseInstruction(s: String): Instruction = s.split(" ").map(_.toInt) match {
+  private def parseInstruction(s: String): Instruction[Int] = s.split(" ").map(_.toInt) match {
     case Array(opcode, a, b, c) => Instruction(opcode, a, b, c)
   }
 
-  private case class Instruction(opcode: Int, a: Int, b: Int, c: Int)
-  private case class Sample(before: Vector[Int], instruction: Instruction, after: Vector[Int])
-
-  private def addr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) + registers(b))
-  }
-
-  private def addi(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) + b)
-  }
-
-  private def mulr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) * registers(b))
-  }
-
-  private def muli(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) * b)
-  }
-
-  private def banr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) & registers(b))
-  }
-
-  private def bani(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) & b)
-  }
-
-  private def borr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) | registers(b))
-  }
-
-  private def bori(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a) | b)
-  }
-
-  private def setr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, registers(a))
-  }
-
-  private def seti(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, a)
-  }
-
-  private def gtir(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, if (a > registers(b)) 1 else 0)
-  }
-
-  private def gtri(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, if (registers(a) > b) 1 else 0)
-  }
-
-  private def gtrr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, if (registers(a) > registers(b)) 1 else 0)
-  }
-
-  private def eqir(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, if (a == registers(b)) 1 else 0)
-  }
-
-  private def eqri(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, if (registers(a) == b) 1 else 0)
-  }
-
-  private def eqrr(registers: Vector[Int], a: Int, b: Int, c: Int): Vector[Int] = {
-    registers.updated(c, if (registers(a) == registers(b)) 1 else 0)
-  }
+  private case class Sample(before: Vector[Int], instruction: Instruction[Int], after: Vector[Int])
 
   private val functions = Set(
     addr _,
