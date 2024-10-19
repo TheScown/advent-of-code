@@ -1,7 +1,6 @@
 package space.scown.adventofcode
 package advent2018.problems
 
-import advent2018.devicecode.Instruction._
 import advent2018.devicecode._
 import lib.{Files, Integers, Problem, Timer}
 
@@ -11,7 +10,7 @@ case class Day19(input: Vector[String]) extends Problem {
   type Func = (Vector[Int], Int, Int, Int) => Vector[Int]
 
   override def solve1(): Unit = {
-    val (instructions, ipRegister) = parse()
+    val (instructions, ipRegister) = Instruction.parse(input)
 
     val result = run(instructions, Vector.fill(6)(0), ipRegister)
 
@@ -19,7 +18,7 @@ case class Day19(input: Vector[String]) extends Problem {
   }
 
   override def solve2(): Unit = {
-    val (instructions, ipRegister) = parse()
+    val (instructions, ipRegister) = Instruction.parse(input)
 
     val result = run(instructions, 1 +: Vector.fill(5)(0), ipRegister)
 
@@ -46,37 +45,6 @@ case class Day19(input: Vector[String]) extends Problem {
     helper(registers, 0)
   }
 
-  private def parse(): (Vector[Instruction[Func]], Int) = {
-    val ipDirective = input.head
-    val instructionStrings = input.tail
-
-    val ipRegister = ipDirective.split(" ").last.toInt
-
-    val instructionPattern = "([a-z]{4}) (\\d+) (\\d+) (\\d+)".r
-
-    val instructions = instructionStrings.map {
-      case instructionPattern(op, a, b, c) => op match {
-        case "addr" => Instruction[Func](addr, a.toInt, b.toInt, c.toInt)
-        case "addi" => Instruction[Func](addi, a.toInt, b.toInt, c.toInt)
-        case "mulr" => Instruction[Func](mulr, a.toInt, b.toInt, c.toInt)
-        case "muli" => Instruction[Func](muli, a.toInt, b.toInt, c.toInt)
-        case "banr" => Instruction[Func](banr, a.toInt, b.toInt, c.toInt)
-        case "bani" => Instruction[Func](bani, a.toInt, b.toInt, c.toInt)
-        case "borr" => Instruction[Func](borr, a.toInt, b.toInt, c.toInt)
-        case "bori" => Instruction[Func](bori, a.toInt, b.toInt, c.toInt)
-        case "setr" => Instruction[Func](setr, a.toInt, b.toInt, c.toInt)
-        case "seti" => Instruction[Func](seti, a.toInt, b.toInt, c.toInt)
-        case "gtir" => Instruction[Func](gtir, a.toInt, b.toInt, c.toInt)
-        case "gtri" => Instruction[Func](gtri, a.toInt, b.toInt, c.toInt)
-        case "gtrr" => Instruction[Func](gtrr, a.toInt, b.toInt, c.toInt)
-        case "eqir" => Instruction[Func](eqir, a.toInt, b.toInt, c.toInt)
-        case "eqri" => Instruction[Func](eqri, a.toInt, b.toInt, c.toInt)
-        case "eqrr" => Instruction[Func](eqrr, a.toInt, b.toInt, c.toInt)
-      }
-    }
-
-    (instructions, ipRegister)
-  }
 }
 
 case object Day19 extends App {
