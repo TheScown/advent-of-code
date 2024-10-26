@@ -15,19 +15,23 @@ case object Dijkstra {
       if (queue.isEmpty) throw new IllegalStateException("No more states to test")
       else {
         val current = queue.dequeue()
-        val nextStates = next(current)
 
-        nextStates.find(goal) match {
-          case Some(state) =>
-            state
-          case None =>
-            nextStates.filterNot(seen.contains).foreach(queue.enqueue(_))
-            helper(seen ++ nextStates)
+        if (seen.contains(current)) helper(seen)
+        else {
+          val nextStates = next(current)
+
+          nextStates.find(goal) match {
+            case Some(state) =>
+              state
+            case None =>
+              nextStates.foreach(queue.enqueue(_))
+              helper(seen + current)
+          }
         }
       }
     }
 
-    helper(Set(start))
+    helper(Set())
   }
 
 }
