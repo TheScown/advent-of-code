@@ -7,12 +7,11 @@ import scala.annotation.tailrec
 
 case class Day9(input: Vector[String]) extends Problem {
   private val graph = parse()
-  type Node = UndirectedGraph.Node[String]
   type Edge = UndirectedGraph.Edge[String]
 
   override def solve1(): Unit = {
     @tailrec
-    def helper(currentNode: Node, path: Vector[Edge], remainingNodes: Set[Node]): Int = {
+    def helper(currentNode: String, path: Vector[Edge], remainingNodes: Set[String]): Int = {
       if (remainingNodes.isEmpty)
         path.map(_.weight).sum
       else {
@@ -33,7 +32,7 @@ case class Day9(input: Vector[String]) extends Problem {
     val combinations = allEdges.combinations(graph.nodes.size - 1)
 
     val validCombinations = combinations.filter { edges =>
-      val nodes = edges.foldLeft(Vector[Node]()) { (vec, edge) => vec :+ edge.v1 :+ edge.v2 }
+      val nodes = edges.foldLeft(Vector[String]()) { (vec, edge) => vec :+ edge.v1 :+ edge.v2 }
       val counts = nodes.groupBy(n => nodes.count(n1 => n1 == n))
       counts.getOrElse(1, Vector()).toSet.size == 2 && counts.getOrElse(2, Vector()).toSet.size == graph.nodes.size - 2
     }
@@ -48,8 +47,8 @@ case class Day9(input: Vector[String]) extends Problem {
 
     input.foldLeft(UndirectedGraph[String]()) { (graph, line) =>
       val matches = pattern.findAllIn(line)
-      val v1 = UndirectedGraph.Node(matches.group(1))
-      val v2 = UndirectedGraph.Node(matches.group(2))
+      val v1 = matches.group(1)
+      val v2 = matches.group(2)
       val weight = matches.group(3).toInt
 
       graph + v1 + v2 + UndirectedGraph.Edge(v1, v2, weight)

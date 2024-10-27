@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package advent2016.problems
 
-import lib.UndirectedGraph.{Edge, Node}
+import lib.UndirectedGraph.Edge
 import lib._
 
 case class Day24(input: Vector[String]) extends Problem {
@@ -38,7 +38,7 @@ case class Day24(input: Vector[String]) extends Problem {
 
     val interestingAddresses = grid.zipWithIndex.filter(_._1.isDigit).map(p => p.copy(_1 = p._1.asDigit)).toMap
 
-    val nodes = interestingAddresses.keySet.map(Node(_))
+    val nodes = interestingAddresses.keySet
 
     val edges = for {
       i <- minNumber until maxNumber
@@ -54,7 +54,7 @@ case class Day24(input: Vector[String]) extends Problem {
             .map(State(_, moves + 1))
       }.get.moves
 
-      Edge(Node(i), Node(j), distance)
+      Edge(i,j, distance)
     }
 
     UndirectedGraph(nodes).addEdges(edges)
@@ -62,7 +62,7 @@ case class Day24(input: Vector[String]) extends Problem {
 
   private def traversePath(path: Vector[Int], graph: UndirectedGraph[Int]) = {
     path.zip(path.tail).foldLeft(0)((count, pair) => {
-      count + graph.edges(Node(pair._1)).find(e => e.v1 == Node(pair._2) || e.v2 == Node(pair._2)).get.weight
+      count + graph.edges(pair._1).find(e => e.v1 == pair._2 || e.v2 == pair._2).get.weight
     })
   }
 
