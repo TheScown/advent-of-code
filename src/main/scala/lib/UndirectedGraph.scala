@@ -1,6 +1,8 @@
 package space.scown.adventofcode
 package lib
 
+import scala.annotation.tailrec
+
 case class UndirectedGraph[T](
   nodes: Set[T] = Set[T](),
   edges: Map[T, Set[UndirectedGraph.Edge[T]]] = Map[T, Set[UndirectedGraph.Edge[T]]]()
@@ -15,6 +17,38 @@ case class UndirectedGraph[T](
   def addNodes(newNodes: Iterable[T]): UndirectedGraph[T] = UndirectedGraph(nodes ++ newNodes, edges)
   def addEdges(newEdges: Iterable[this.Edge]): UndirectedGraph[T] = newEdges.foldLeft(this)((g, e) => g + e)
 
+  def neighbours(node: T): Set[T] = {
+    edges.getOrElse(node, Set()).flatMap(e => Set(e.v1, e.v2)) - node
+  }
+
+  // Implement Bron–Kerbosch
+  def maximalCliques(): Vector[Set[T]] = {
+    def getPivot(nodes: Set[T]): T = {
+      nodes.maxBy(node => neighbours(node).size)
+    }
+
+    def bronKerbosch(r: Set[T], p: Set[T], x: Set[T], acc: Vector[Set[T]]): Vector[Set[T]] = {
+      @tailrec
+      def innerLoop(vertexSet: Set[T], r: Set[T], p: Set[T], x: Set[T], acc: Vector[Set[T]]): Vector[Set[T]] = {
+        if (vertexSet.isEmpty) acc
+        else {
+          val v = vertexSet.head
+          val updatedAcc = bronKerbosch(r + v, p intersect neighbours(v), x intersect neighbours(v), acc)
+          innerLoop(vertexSet - v, r, p - v, x + v, updatedAcc)
+        }
+      }
+
+      if (p.isEmpty && x.isEmpty) acc :+ r
+      else {
+        val testSet = p union x
+        val pivot = getPivot(testSet)
+        val vertexSet = p -- neighbours(pivot)
+        innerLoop(vertexSet, r, p, x, acc)
+      }
+    }
+
+    bronKerbosch(Set(), edges.keySet, Set(), Vector())
+  }
 }
 
 object UndirectedGraph {
