@@ -17,7 +17,7 @@ case class Day12(input: Vector[String]) extends Problem {
     val instructions = parse()
     val unionFind: UnionFind = connectComponents(instructions)
 
-    val result = instructions.indices.map(unionFind.find).toSet.size
+    val result = unionFind.componentCount
 
     println(s"Result 2: $result")
   }

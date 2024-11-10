@@ -39,6 +39,8 @@ case class UnionFind(size: Int) {
 
   def size(x: Int): Int = sizes(find(x))
 
+  def componentCount: Int = parents.indices.map(find).toSet.size
+
 }
 
 case object UnionFind {
