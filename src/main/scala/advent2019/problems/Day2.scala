@@ -2,12 +2,14 @@ package space.scown.adventofcode
 package advent2019.problems
 
 import advent2019.intcode.{IntcodeComputer, IntcodeProgram, Termination}
-import lib.{Files, Problem}
+import lib.{Files, Integers, Problem}
+
+import scala.math.Numeric.LongIsIntegral
 
 case class Day2(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
-    val updatedProgram = program.updated(1, 12.toLong).updated(2, 2.toLong)
+    val updatedProgram = program.updated(1, 12L).updated(2, 2L)
     val computer = IntcodeComputer(updatedProgram)
 
     computer.execute() match {
@@ -22,14 +24,13 @@ case class Day2(lines: Vector[String]) extends Problem {
   override def solve2(): Unit = {
     val program = IntcodeProgram.fromLines(lines)
 
-    val inputs = for {
-      i <- 0 to 99
-      j <- 0 to 99
-    } yield (i, j)
+    def intList: LazyList[Long] = Integers.naturalNumbers(LongIsIntegral).map(_ - 1).take(100)
 
-    val resultPair = inputs.find {
+    val pairs = intList.flatMap(i => intList.map(j => (i, j)))
+
+    val resultPair = pairs.find {
       case (i, j) =>
-        val updatedProgram = program.updated(1, i.toLong).updated(2, j.toLong)
+        val updatedProgram = program.updated(1, i).updated(2, j)
         val computer = IntcodeComputer(updatedProgram)
         computer.execute() match {
           case Termination(_, memory) => memory(0) == 19690720
@@ -44,12 +45,10 @@ case class Day2(lines: Vector[String]) extends Problem {
 
 }
 
-object Day2 {
-  def main(args: Array[String]): Unit = {
-    val value = Files.lines("2019/day2.txt")
-    Day2(value).solve1()
-    Day2(value).solve2()
-  }
-
+case object Day2 extends App {
+  val value = Files.lines("2019/day2.txt")
+  val problem = Day2(value)
+  problem.solve1()
+  problem.solve2()
 }
 
