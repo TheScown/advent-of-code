@@ -30,6 +30,11 @@ case class Complex[T](re: T, im: T)(implicit n: Integral[T]) extends Ordered[Com
   def :*(x: T): Complex[T] = this * Complex(x, n.zero)
 
   /**
+   * @return The normalised direction of the real or imaginary number (will be incorrect for complex numbers)
+   */
+  def normalised: Complex[T] = Complex(if (re == n.zero) re else re / re.abs, if (im == n.zero) im else im / im.abs)
+
+  /**
    * @param other The given Complex
    * @return Manhattan distance between this and the given Complex
    */
