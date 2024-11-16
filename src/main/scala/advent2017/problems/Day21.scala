@@ -30,7 +30,7 @@ case class Day21(input: Vector[String]) extends Problem {
         val parts = if (grid.rowLength % 2 == 0) grid.grouped(2, 2) else grid.grouped(3, 3)
 
         val newGrid = Grid.flatten(parts.map { g =>
-          val gridsToTest = DFS.reachable(g) { g =>
+          val gridsToTest = DFS.reachable(g) { (g, _) =>
             Seq(
               g.rotateRight(),
               g.flipHorizontally()

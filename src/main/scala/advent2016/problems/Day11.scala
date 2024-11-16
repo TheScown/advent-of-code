@@ -27,9 +27,9 @@ case class Day11(input: Vector[String]) extends Problem {
   }
 
   private def solve(floors: Vector[Floor]): Int = {
-    val initialState = State(0, floors, 0)
+    val initialState = State(0, floors)
     val result = BFS.solve[State](initialState, s => s.isComplete) {
-      case State(elevatorFloor, floors, moves) =>
+      case (State(elevatorFloor, floors), _) =>
         val minFloor = floors.indexWhere(f => f.things.nonEmpty)
         val nextFloors = Seq(elevatorFloor - 1, elevatorFloor + 1).filter(f => f >= minFloor && f < floors.size)
         val newStates = nextFloors.flatMap { nextFloorId =>
@@ -45,8 +45,7 @@ case class Day11(input: Vector[String]) extends Problem {
                 nextFloorId,
                 floors
                   .updated(elevatorFloor, newCurrentFloor)
-                  .updated(nextFloorId, newNextFloor),
-                moves + 1
+                  .updated(nextFloorId, newNextFloor)
               )
             }
             .filter(state => state.floors.forall(_.isValid))
@@ -54,7 +53,7 @@ case class Day11(input: Vector[String]) extends Problem {
 
         newStates
     }
-    result.get.moves
+    result.get.steps
   }
 
   private def parse(): Vector[Floor] = {
@@ -79,23 +78,11 @@ case class Day11(input: Vector[String]) extends Problem {
     }
   }
 
-  case class State(elevatorFloor: Int, floors: Vector[Floor], moves: Int) {
+  case class State(elevatorFloor: Int, floors: Vector[Floor]) {
     def isComplete: Boolean = {
       val reversed = floors.reverse
       reversed.tail.forall(f => f.things.isEmpty)
     }
-
-    override def equals(obj: Any): Boolean = {
-      if (!obj.isInstanceOf[State]) false
-      else {
-        val other = obj.asInstanceOf[State]
-
-        if (other.elevatorFloor != elevatorFloor) false
-        else other.floors == floors
-      }
-    }
-
-    override def hashCode(): Int = 37 * elevatorFloor + floors.hashCode()
   }
 
   case class Floor(things: Set[Thing] = Set()) {

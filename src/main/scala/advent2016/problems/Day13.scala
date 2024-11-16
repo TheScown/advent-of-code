@@ -12,25 +12,22 @@ case class Day13(input: String) extends Problem {
   override def solve1(): Unit = {
     val target = Complex(31, 39)
 
-    val start = State(Complex(1, 1), 0)
+    val start = Complex(1, 1)
 
-    val result = BFS.solve[State](start, _.address == target) {
-      case State(address, moves) =>
-        val neighbours = validNeighbours(address)
-
-        neighbours.map(State(_, moves + 1))
-    }.get.moves + 1
+    val result = BFS.solve[Complex[Int]](start, _ == target) {
+      (address, _) => validNeighbours(address)
+    }.get.steps
 
     println(s"Result 1: $result")
   }
 
   override def solve2(): Unit = {
-    val start = State(Complex(1, 1), 0)
+    val start = Complex(1, 1)
 
     val result = DFS.reachable(start) {
-      case State(address, moves) =>
+      (address, moves) =>
         if (moves == 50) Seq()
-        else validNeighbours(address).map(c => State(c, moves + 1))
+        else validNeighbours(address)
     }.size
 
     println(s"Result 2: $result")
@@ -49,19 +46,6 @@ case class Day13(input: String) extends Problem {
     case Complex(x, y) =>
       val number = x * x + 3 * x + 2 * x * y + y + y * y + favouriteNumber
       number.bitCount % 2 == 1
-  }
-
-  case class State(address: Complex[Int], moves: Int) {
-    override def equals(obj: Any): Boolean = {
-      if (!obj.isInstanceOf[State]) false
-      else {
-        val other = obj.asInstanceOf[State]
-
-        address == other.address
-      }
-    }
-
-    override def hashCode(): Int = address.hashCode()
   }
 }
 

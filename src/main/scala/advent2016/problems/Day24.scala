@@ -47,12 +47,11 @@ case class Day24(input: Vector[String]) extends Problem {
       val startAddress = interestingAddresses(i)
       val destinationAddress = interestingAddresses(j)
 
-      val distance = BFS.solve[State](State(startAddress, 0), state => state.current == destinationAddress) {
-        case State(address, moves) =>
+      val distance = BFS.solve[Complex[Int]](startAddress, state => state == destinationAddress) {
+        (address, _) =>
           grid.neighbours(address)
             .filter(grid.apply(_) != '#')
-            .map(State(_, moves + 1))
-      }.get.moves
+      }.get.steps
 
       Edge(i,j, distance)
     }
@@ -64,15 +63,6 @@ case class Day24(input: Vector[String]) extends Problem {
     path.zip(path.tail).foldLeft(0)((count, pair) => {
       count + graph.edges(pair._1).find(e => e.v1 == pair._2 || e.v2 == pair._2).get.weight
     })
-  }
-
-  case class State(current: Complex[Int], moves: Int) {
-    override def equals(obj: Any): Boolean = obj match {
-      case State(c, _) =>  current == c
-      case _ => false
-    }
-
-    override def hashCode(): Int = current.hashCode()
   }
 }
 

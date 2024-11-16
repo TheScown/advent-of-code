@@ -25,7 +25,7 @@ case class Day14(input: String) extends Problem {
 
       if (!flag || visited.contains(address)) acc
       else {
-        val reachable = DFS.reachable(address) { current =>
+        val reachable = DFS.reachable(address) { (current, _) =>
           grid.neighbours(current).filter(a => grid(a))
         }
 
