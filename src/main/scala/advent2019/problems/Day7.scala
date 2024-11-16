@@ -12,22 +12,15 @@ case class Day7(lines: Vector[String]) extends Problem {
     val permutations = (0 until 5).permutations
 
     val result = permutations.map { phases =>
-      @tailrec
-      def helper(remainingPhases: IndexedSeq[Int], nextInput: Long = 0): Long = {
-        if (remainingPhases.isEmpty) return nextInput
-
-        val phase = remainingPhases.head
-
+      phases.foldLeft(0L) { (nextInput, phase) =>
         val computer = IntcodeComputer(program)
 
         val result = Seq(phase, nextInput).foldLeft(computer.execute()) { (output, value) => output match {
           case RequiresInput(_, continue) => continue(value)
         } }
 
-        helper(remainingPhases.tail, result.outputs.last)
+        result.outputs.last
       }
-
-      helper(phases)
     }.max
 
     // Should be 21760
@@ -39,8 +32,6 @@ case class Day7(lines: Vector[String]) extends Problem {
     val permutations = (5 to 9).permutations
 
     val result = permutations.map { phases =>
-//      println(s"Phases $phases")
-
       val computers = phases.map { phase =>
         IntcodeComputer(program).execute() match {
           case RequiresInput(_, continue) => continue(phase)
@@ -70,11 +61,9 @@ case class Day7(lines: Vector[String]) extends Problem {
   }
 }
 
-object Day7 {
-  def main(args: Array[String]): Unit = {
-    val value = Files.lines("2019/day7.txt")
-    Day7(value).solve1()
-    Day7(value).solve2()
-  }
-
+object Day7 extends App {
+  val value = Files.lines("2019/day7.txt")
+  val problem = Day7(value)
+  problem.solve1()
+  problem.solve2()
 }
