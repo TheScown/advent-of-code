@@ -6,41 +6,37 @@ import lib.{Files, Problem}
 
 case class Day5(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
-    val program = IntcodeProgram.fromLines(lines)
-    val computer = IntcodeComputer(program)
-
-    val output = (computer.execute() match {
+    val result = (computer.execute() match {
       case RequiresInput(_, continue) => continue(1L)
     }) match {
-      case Termination(outputs, _) => outputs.find(x => x != 0)
+      case Termination(outputs, _) => outputs.find(x => x != 0).get
     }
 
     // Should be 9025675
-    println(s"Result 1: ${output.get}")
+    println(s"Result 1: $result")
   }
 
   override def solve2(): Unit = {
-    val program = IntcodeProgram.fromLines(lines)
-    val computer = IntcodeComputer(program)
-
-    val output = (computer.execute() match {
+    val result = (computer.execute() match {
       case RequiresInput(_, continue) => continue(5L)
     }) match {
-      case Termination(outputs, _) => outputs.find(x => x != 0)
+      case Termination(outputs, _) => outputs.find(x => x != 0).get
     }
 
     // Should be 11981754
-    println(s"Result 2: ${output.get}")
+    println(s"Result 2: $result")
   }
 
+  private def computer = {
+    val program = IntcodeProgram.fromLines(lines)
+    IntcodeComputer(program)
+  }
 }
 
-object Day5 {
-  def main(args: Array[String]): Unit = {
-    val value = Files.lines("2019/day5.txt")
-    Day5(value).solve1()
-    Day5(value).solve2()
-  }
-
+object Day5 extends App {
+  val value = Files.lines("2019/day5.txt")
+  val problem = Day5(value)
+  problem.solve1()
+  problem.solve2()
 }
 
