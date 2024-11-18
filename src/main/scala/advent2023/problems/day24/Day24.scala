@@ -2,11 +2,12 @@ package space.scown.adventofcode
 package advent2023.problems.day24
 
 import lib.Timer.time
-import lib.{Files, Problem}
+import lib.{Files, Problem, Rational}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.Fractional.Implicits.infixFractionalOps
+import scala.math.Numeric.BigIntIsIntegral
 
 
 
@@ -60,9 +61,9 @@ case class Day24(lines: Vector[String]) extends Problem {
     }
   }
 
-  private def solve(system: Vector[Vector[Rational]]): Option[Vector[Rational]] = {
+  private def solve(system: Vector[Vector[Rational[BigInt]]]): Option[Vector[Rational[BigInt]]] = {
     @tailrec
-    def backSubstitute(system: Vector[Vector[Rational]], index: Int, result: Vector[Rational]): Vector[Rational] = {
+    def backSubstitute(system: Vector[Vector[Rational[BigInt]]], index: Int, result: Vector[Rational[BigInt]]): Vector[Rational[BigInt]] = {
       if (index == -1) result
       else {
         val row = system(index)
@@ -72,7 +73,7 @@ case class Day24(lines: Vector[String]) extends Problem {
     }
 
     @tailrec
-    def helper(system: Vector[Vector[Rational]], index: Int): Option[Vector[Rational]] = {
+    def helper(system: Vector[Vector[Rational[BigInt]]], index: Int): Option[Vector[Rational[BigInt]]] = {
       if (index == system.size) {
         // Do back substitution
         system.foreach(println)
@@ -80,7 +81,7 @@ case class Day24(lines: Vector[String]) extends Problem {
       }
       else {
         val possiblePivot = system(index)(index)
-        val swappedCoefficients = if (possiblePivot != Rational.ZERO) system else {
+        val swappedCoefficients = if (possiblePivot != Rational.ZERO(BigIntIsIntegral)) system else {
           (index + 1 until system.size).find(r => system(r)(index) != Rational.ZERO) match {
             case None =>
               println("Ns solution")
@@ -111,7 +112,7 @@ case class Day24(lines: Vector[String]) extends Problem {
     helper(system, 0)
   }
 
-  private def equations(h1: Hailstone, h2: Hailstone, h3: Hailstone): Vector[Vector[Rational]] = {
+  private def equations(h1: Hailstone, h2: Hailstone, h3: Hailstone): Vector[Vector[Rational[BigInt]]] = {
     Vector(
       Vector(h1.vy - h2.vy, h2.vx - h1.vx, 0, h2.py - h1.py, h1.px - h2.px, 0, (h2.py * h2.vx - h2.px * h2.vy) - (h1.py * h1.vx - h1.px * h1.vy)),
       Vector(h1.vz - h2.vz, 0, h2.vx - h1.vx, h2.pz - h1.pz, 0, h1.px - h2.px, (h2.pz * h2.vx - h2.px * h2.vz) - (h1.pz * h1.vx - h1.px * h1.vz)),
