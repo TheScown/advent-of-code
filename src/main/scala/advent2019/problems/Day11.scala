@@ -2,7 +2,7 @@ package space.scown.adventofcode
 package advent2019.problems
 
 import advent2019.intcode._
-import lib.{Files, Gui, Problem}
+import lib.{Complex, Files, Gui, Problem}
 
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -20,7 +20,6 @@ case class Day11(lines: Vector[String]) extends Problem {
     val robot = Robot()
     val robotOutput = robot.run(computerOutput)
 
-    // Should be 2129
     println(s"Result 1: ${robotOutput.size}")
   }
 
@@ -36,10 +35,10 @@ case class Day11(lines: Vector[String]) extends Problem {
     val robotOutput = robot.run(computerOutput)
 
     val paintedKeys = robotOutput.keySet
-    val minX = paintedKeys.minBy(_._1)._1
-    val maxX = paintedKeys.maxBy(_._1)._1
-    val minY = paintedKeys.minBy(_._2)._2
-    val maxY = paintedKeys.maxBy(_._2)._2
+    val minX = paintedKeys.minBy(_.re).re
+    val maxX = paintedKeys.maxBy(_.re).re
+    val minY = paintedKeys.minBy(_.im).im
+    val maxY = paintedKeys.maxBy(_.im).im
 
     val width = maxX - minX + 1
     val height = maxY - minY + 1
@@ -53,97 +52,43 @@ case class Day11(lines: Vector[String]) extends Problem {
       x <- minX to maxX
       y <- minY to maxY
     } {
-      val colour = if (robotOutput.getOrElse((x, y), 0) == 1) Color.WHITE.getRGB else Color.BLACK.getRGB
+      val colour = if (robotOutput.getOrElse(Complex(x, y), 0) == 1) Color.WHITE.getRGB else Color.BLACK.getRGB
       image.setRGB(x + translateX, height - 1 - (y + translateY), colour)
     }
 
     Gui.renderImage(image)
   }
-}
 
-case class Robot() {
-
-  def run(output: Output): Map[(Int, Int), Long] = {
-    @tailrec
-    def robot(currentPosition: (Int, Int), facing: Direction, mapping: Map[(Int, Int), Long], output: Output, count: Int): Map[(Int, Int), Long] = {
-      println(s"ROBOT: $currentPosition, $facing, $count")
-      if (output.outputs.isEmpty) {
-        println("Robot bailing out")
-        mapping
-      }
-      else {
-        output.outputs match {
-          case Seq(nextColour, nextDirection) =>
-            println(s"$nextColour,$nextDirection")
-            val nextFacing = facing + nextDirection
-            val nextPosition = nextFacing.nextPosition(currentPosition._1, currentPosition._2)
-            output match {
-              case RequiresInput(_, continue) =>
-                val nextOutput = continue(mapping.getOrElse(nextPosition, 0.toLong))
-                robot(nextPosition, nextFacing, mapping + (currentPosition -> nextColour), nextOutput, count + 1)
-              case Termination(_, _) =>
-                println("Robot bailing out")
-                mapping
-            }
+  case class Robot() {
+    def run(output: Output): Map[Complex[Int], Long] = {
+      @tailrec
+      def robot(currentPosition: Complex[Int], facing: Complex[Int], mapping: Map[Complex[Int], Long], output: Output, count: Int): Map[Complex[Int], Long] = {
+        if (output.outputs.isEmpty) {
+          mapping
+        }
+        else {
+          output.outputs match {
+            case Seq(nextColour, nextDirection) =>
+              val nextFacing = facing * (if (nextDirection == 0) Complex.I[Int] else -Complex.I[Int])
+              val nextPosition = currentPosition + nextFacing
+              output match {
+                case RequiresInput(_, continue) =>
+                  val nextOutput = continue(mapping.getOrElse(nextPosition, 0.toLong))
+                  robot(nextPosition, nextFacing, mapping + (currentPosition -> nextColour), nextOutput, count + 1)
+                case Termination(_, _) => mapping
+              }
+          }
         }
       }
+
+      robot(Complex.ZERO, Complex.I, Map(), output, 0)
     }
-
-    robot((0, 0), Up, Map(), output, 0)
   }
-
 }
 
-sealed trait Direction {
-  def +(x : Long): Direction
-
-  def nextPosition(x: Int, y: Int): (Int, Int)
-}
-case object Up extends Direction {
-  override def +(x: Long): Direction = {
-    if (x == 0) Left
-    else if (x == 1) Right
-    else throw new IllegalStateException(s"Invalid turn $x")
-  }
-
-  override def nextPosition(x: Int, y: Int): (Int, Int) = (x, y + 1)
-}
-
-case object Left extends Direction  {
-  override def +(x: Long): Direction = {
-    if (x == 0) Down
-    else if (x == 1) Up
-    else throw new IllegalStateException(s"Invalid turn $x")
-  }
-
-  override def nextPosition(x: Int, y: Int): (Int, Int) = (x - 1, y)
-}
-
-case object Right extends Direction  {
-  override def +(x: Long): Direction = {
-    if (x == 0) Up
-    else if (x == 1) Down
-    else throw new IllegalStateException(s"Invalid turn $x")
-  }
-
-  override def nextPosition(x: Int, y: Int): (Int, Int) = (x + 1, y)
-}
-
-case object Down extends Direction  {
-  override def +(x: Long): Direction = {
-    if (x == 0) Right
-    else if (x == 1) Left
-    else throw new IllegalStateException(s"Invalid turn $x")
-  }
-
-  override def nextPosition(x: Int, y: Int): (Int, Int) = (x, y - 1)
-}
-
-object Day11 {
-  def main(args: Array[String]): Unit = {
-    val value = Files.lines("2019/day11.txt")
-    Day11(value).solve1()
-    Day11(value).solve2()
-  }
-
+object Day11 extends App {
+  val value = Files.lines("2019/day11.txt")
+  val problem: Day11 = Day11(value)
+  problem.solve1()
+  problem.solve2()
 }
