@@ -31,4 +31,11 @@ case class Vec3[T](x1: T, x2: T, x3: T)(implicit n: Numeric[T]) {
     f(x2, v2.x2, v3.x2),
     f(x3, v2.x3, v3.x3)
   )
+
+  def apply(xn: Int): T = xn match {
+    case 0 => x1
+    case 1 => x2
+    case 2 => x3
+    case _ => throw new IllegalArgumentException(s"Invalid index $xn")
+  }
 }

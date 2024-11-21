@@ -25,6 +25,21 @@ object Integers {
     smallFactors union largeFactors
   }
 
+  def lcm[T](x: T, y: T)(implicit n: Integral[T]): T = {
+    x * (y / gcd(x, y))
+  }
+
+  def gcd[T](x: T, y: T)(implicit n: Integral[T]): T = {
+    @tailrec
+    def helper(a: T, b: T): T = {
+      if (b == n.zero) a
+      else helper(b, a % b)
+    }
+
+    if (x > y) helper(x, y)
+    else helper(y, x)
+  }
+
   /**
    * Compute the extended Euclidean algorithm for two integers
    * @param a First input
