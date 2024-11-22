@@ -56,13 +56,13 @@ case class Day22(input: Vector[String]) extends Problem {
 
     val stateAtIntermediate = Dijkstra.solve[State](
       initialState,
-      Ordering.by[State, Int](-_.score(intermediate)),
+      Ordering.by[State, Int](_.intermediateScore(intermediate)).reverse,
       state => state.emptyAddress == intermediate
     )(next)
 
     val resultState = Dijkstra.solve[State](
       stateAtIntermediate,
-      Ordering.by[State, Int](-_.score(targetAddress)),
+      Ordering.by[State, Int](_.score(targetAddress)).reverse,
       state => {
         state.grid(Complex.ZERO).address == targetAddress
       }
@@ -113,6 +113,12 @@ case class Day22(input: Vector[String]) extends Problem {
       val emptyToTarget = targetLocation - emptyAddress
       // Cost is the distance to the target, plus 5 moves to get the target to the goal, plus the moves taken
       moves + (emptyToTarget.re.abs + emptyToTarget.im.abs) + 5 * (targetLocation.re.abs + targetLocation.im.abs)
+    }
+
+    def intermediateScore(targetAddress: Complex[Int]): Int = {
+      val emptyToTarget = targetAddress - emptyAddress
+      // Cost is the distance to the target, plus the moves taken
+      moves + (emptyToTarget.re.abs + emptyToTarget.im.abs)
     }
 
     override def equals(obj: Any): Boolean = obj match {

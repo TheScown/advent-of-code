@@ -17,16 +17,11 @@ case object Dijkstra {
         val current = queue.dequeue()
 
         if (seen.contains(current)) helper(seen)
+        else if (goal(current)) current
         else {
           val nextStates = next(current)
-
-          nextStates.find(goal) match {
-            case Some(state) =>
-              state
-            case None =>
-              nextStates.foreach(queue.enqueue(_))
-              helper(seen + current)
-          }
+          nextStates.foreach(queue.enqueue(_))
+          helper(seen + current)
         }
       }
     }

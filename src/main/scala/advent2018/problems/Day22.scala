@@ -101,7 +101,7 @@ case class Day22(input: Vector[String]) extends Problem {
     def score(target: Complex[Int]): Int = {
       val cost = time
       val remainingSteps = position mh target
-      cost + remainingSteps + (if (tool != Torch) 7 else 0)
+      cost + remainingSteps
     }
 
     override def hashCode(): Int = position.hashCode() + 37 * tool.hashCode()
