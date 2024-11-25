@@ -31,7 +31,7 @@ case class Day17(input: String) extends Problem {
       else {
         validNeighbours(state)
       }
-    }
+    }.map(_.value)
 
     val maxState = reachableStates.filter(_.address == target).maxBy(_.path.size)
     val result = maxState.path.size

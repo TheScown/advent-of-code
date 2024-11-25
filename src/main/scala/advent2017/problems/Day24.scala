@@ -1,7 +1,7 @@
 package space.scown.adventofcode
 package advent2017.problems
 
-import lib.{BFS, DFS, Files, Problem, Timer}
+import lib.{BFS, Files, Problem, Timer}
 
 case class Day24(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -36,7 +36,7 @@ case class Day24(input: Vector[String]) extends Problem {
             val withPartRemoved = remainingParts + (l -> (remainingParts.getOrElse(l, Set()) - p)) + (r -> (remainingParts.getOrElse(r, Set()) - p))
             Bridge(strength + l + r, if (l != port) l else r, partsUsed + 1, withPartRemoved)
         }
-    }
+    }.map(_.value)
   }
 
   def parse(): Set[(Int, Int)] = {
