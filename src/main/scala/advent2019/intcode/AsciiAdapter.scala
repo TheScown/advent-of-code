@@ -14,7 +14,9 @@ case class AsciiAdapter(output: Output) {
         case t@Termination(_, _) => AsciiAdapter(t)
       }
     }
-    case Termination(_, _) => throw new IllegalStateException("Sending to terminated computer")
+    case t@Termination(_, _) =>
+      print(AsciiAdapter(t).stringOutput)
+      throw new IllegalStateException("Sending to terminated computer")
   }
 
 }
