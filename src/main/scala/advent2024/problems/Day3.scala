@@ -1,9 +1,7 @@
 package space.scown.adventofcode
-package advent2024
+package advent2024.problems
 
 import lib.{Files, Problem}
-
-import scala.util.parsing.combinator.RegexParsers
 
 case class Day3(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
