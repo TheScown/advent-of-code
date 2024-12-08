@@ -45,7 +45,7 @@ case class Day4(input: Vector[String]) extends Problem {
       Complex(1, -1)
     )
 
-    val indicies = grid.indices.toSet
+    val indices = grid.indices.toSet
 
     val result = grid.zipWithIndex.filter(_._1 == 'A').count { case (_, index) =>
       val ranges = directions.map { d =>
@@ -56,7 +56,7 @@ case class Day4(input: Vector[String]) extends Problem {
         val start = range.head
         val end = range.last
 
-        indicies.contains(start) && indicies.contains(end)
+        indices.contains(start) && indices.contains(end)
       }
 
       validRanges.map(_.map(grid.apply).mkString("")).count(_ == "MAS") == 2
