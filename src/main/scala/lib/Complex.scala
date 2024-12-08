@@ -49,6 +49,15 @@ case class Complex[T](re: T, im: T)(implicit n: Integral[T]) extends Ordered[Com
     }
   }
 
+  /**
+   * @return A complex which is the "lowest terms" form (which doesn't make sense, but hey ho)
+   */
+  def simplify: Complex[T] = {
+    val (factor, _, _) = Integers.extendedEuclidean(n.abs(re), n.abs(im))
+    if (factor == n.one) this
+    else Complex(n.quot(re, factor), n.quot(im, factor))(n).simplify
+  }
+
   override def compare(that: Complex[T]): Int = {
     if (n.lt(im, that.im)) -1
     else if (n.gt(im, that.im)) 1
