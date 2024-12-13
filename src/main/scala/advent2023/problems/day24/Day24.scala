@@ -2,14 +2,12 @@ package space.scown.adventofcode
 package advent2023.problems.day24
 
 import lib.Timer.time
-import lib.{Files, Problem, Rational}
+import lib.{Files, GaussianElimination, Problem, Rational}
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.math.Fractional.Implicits.infixFractionalOps
 import scala.math.Numeric.BigIntIsIntegral
-
-
 
 case class Day24(lines: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -41,7 +39,7 @@ case class Day24(lines: Vector[String]) extends Problem {
       println(s"Trying ${hs(0)}, ${hs(1)}, ${hs(2)}")
       val system = equations(hs(0), hs(1), hs(2))
 
-      solve(system)
+      GaussianElimination.solve(system)
     }.find(_.isDefined).get.get
 
     println(s"$solution")
@@ -59,57 +57,6 @@ case class Day24(lines: Vector[String]) extends Problem {
 
       Hailstone(ps(0), ps(1), ps(2), vs(0), vs(1), vs(2))
     }
-  }
-
-  private def solve(system: Vector[Vector[Rational[BigInt]]]): Option[Vector[Rational[BigInt]]] = {
-    @tailrec
-    def backSubstitute(system: Vector[Vector[Rational[BigInt]]], index: Int, result: Vector[Rational[BigInt]]): Vector[Rational[BigInt]] = {
-      if (index == -1) result
-      else {
-        val row = system(index)
-        val knownSum = row.slice(index + 1, row.size - 1).zip(result.slice(index + 1, result.size)).map(p => p._1 * p._2).sum
-        backSubstitute(system, index - 1, result.updated(index, system(index).last - knownSum))
-      }
-    }
-
-    @tailrec
-    def helper(system: Vector[Vector[Rational[BigInt]]], index: Int): Option[Vector[Rational[BigInt]]] = {
-      if (index == system.size) {
-        // Do back substitution
-        system.foreach(println)
-        Some(backSubstitute(system, system.size - 1, Vector.fill(system.size)(Rational.ZERO)))
-      }
-      else {
-        val possiblePivot = system(index)(index)
-        val swappedCoefficients = if (possiblePivot != Rational.ZERO(BigIntIsIntegral)) system else {
-          (index + 1 until system.size).find(r => system(r)(index) != Rational.ZERO) match {
-            case None =>
-              println("Ns solution")
-              return None
-            case Some(r) =>
-              println(s"Swapping $r, $index")
-              system.updated(index, system(r)).updated(r, system(index))
-          }
-        }
-        val pivot = swappedCoefficients(index)(index)
-
-        val dividedRow = swappedCoefficients(index).map(x => x / pivot)
-        val rowProcessed = swappedCoefficients.updated(index, dividedRow)
-
-        val remainingRowsProcessed = (index + 1 until system.size).foldLeft(rowProcessed) {(cfs, i) =>
-          val multiplier = -cfs(i)(index)
-          val updatedRow = cfs(index).map(_ * multiplier).zip(cfs(i)).map({
-            case (a, b) => a + b
-          })
-
-          cfs.updated(i, updatedRow)
-        }
-
-        helper(remainingRowsProcessed, index + 1)
-      }
-    }
-
-    helper(system, 0)
   }
 
   private def equations(h1: Hailstone, h2: Hailstone, h3: Hailstone): Vector[Vector[Rational[BigInt]]] = {

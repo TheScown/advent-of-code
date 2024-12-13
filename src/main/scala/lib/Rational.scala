@@ -10,6 +10,24 @@ case class Rational[T](d: T, q: T)(implicit n: Integral[T]) extends ScalaNumber 
     throw new ArithmeticException("/ by zero")
   }
 
+  def +(x: Rational[T]): Rational[T] = {
+    if (n.equiv(q, x.q)) Rational(n.plus(d, x.d), q).simplify
+    else {
+      Rational(n.plus(n.times(d, x.q), n.times(x.d, q)), n.times(q, x.q)).simplify
+    }
+  }
+
+  def -(x: Rational[T]): Rational[T] = {
+    if (n.equiv(q, x.q)) Rational(n.minus(d, x.d), q).simplify
+    else {
+      Rational(n.minus(n.times(d, x.q), n.times(x.d, q)), n.times(q, x.q)).simplify
+    }
+  }
+
+  def *(x: Rational[T]): Rational[T] = Rational(n.times(d, x.d), n.times(q, x.q)).simplify
+  def /(x: Rational[T]): Rational[T] = Rational(n.times(d, x.q), n.times(q, x.d)).simplify
+  def unary_-(): Rational[T] = Rational(n.negate(d), q)
+
   def simplify: Rational[T] = {
     val factor = Integers.gcd(d, q)
     if (factor == n.one) this
