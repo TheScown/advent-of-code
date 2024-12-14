@@ -28,7 +28,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   }
 
   def updated(address: Complex[Int], value: T): Grid[T] = {
-    Grid(values.updated(-address.im, values(-address.im).updated(address.re, value)))
+    Grid(values.updated(-address.im, values(-address.im).updated(address.re, value)), wrapping)
   }
 
   def updated(address: Complex[Int], grid: Grid[T]): Grid[T] = {
@@ -40,11 +40,11 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   def slice(address: Complex[Int], width: Int, height: Int): Grid[T] = {
     Grid(values.slice(-address.im, -address.im + height).map { row =>
       row.slice(address.re, address.re + width)
-    })
+    }, wrapping)
   }
 
   def summedArea[B >: T](implicit num: Numeric[B]): Grid[B] = {
-    indices.foldLeft(Grid.of(columnLength, rowLength, num.zero)) { (acc, c) =>
+    indices.foldLeft(Grid.of(columnLength, rowLength, num.zero, wrapping)) { (acc, c) =>
       acc.updated(c, acc.getOrElse(c - Complex.ONE(IntIsIntegral), num.zero) + acc.getOrElse(c + Complex.I(IntIsIntegral), num.zero) - acc.getOrElse(c - Complex.ONE(IntIsIntegral) + Complex.I(IntIsIntegral), num.zero) + this(c))
     }
   }
@@ -77,11 +77,16 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   }
 
   def next(address: Complex[Int], delta: Complex[Int]): Complex[Int] = {
+    val possibleNext = address + delta
+
     if (wrapping) {
-      throw new UnsupportedOperationException("Wrapping grid not yet supported")
+      val result = Complex(
+        (possibleNext.re % rowLength + rowLength) % rowLength,
+        -((-possibleNext.im % columnLength + columnLength) % columnLength)
+      )
+      result
     }
     else {
-      val possibleNext = address + delta
       if (possibleNext.re < 0 || possibleNext.re >= rowLength
         || possibleNext.im > 0 || possibleNext.im <= -columnLength) address
       else possibleNext
@@ -92,16 +97,16 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     val groupedRows = values.map(_.grouped(columns).toVector)
     val rowGroups = groupedRows.grouped(rows).toVector
     val gridRows = rowGroups.map { rowGroup =>
-      rowGroup.transpose.map(Grid(_))
+      rowGroup.transpose.map(Grid(_, wrapping))
     }
     Grid(gridRows)
   }
 
-  def rotateRight(): Grid[T] = Grid(values.transpose.map(_.reverse))
-  def rotateLeft(): Grid[T] = Grid(values.map(_.reverse).transpose)
+  def rotateRight(): Grid[T] = Grid(values.transpose.map(_.reverse), wrapping)
+  def rotateLeft(): Grid[T] = Grid(values.map(_.reverse).transpose, wrapping)
 
-  def flipHorizontally(): Grid[T] = Grid(values.map(_.reverse))
-  def flipVertically(): Grid[T] = Grid(values.reverse)
+  def flipHorizontally(): Grid[T] = Grid(values.map(_.reverse), wrapping)
+  def flipVertically(): Grid[T] = Grid(values.reverse, wrapping)
 
   def rotateRow(row: Int, by: Int): Grid[T] = {
     if (by == 0) return this
@@ -114,7 +119,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     else {
       val toMove = affectedRow.slice(affectedRow.size - by, affectedRow.size)
       val newRow = toMove ++ affectedRow.slice(0, affectedRow.size - by)
-      Grid(values.updated(row, newRow))
+      Grid(values.updated(row, newRow), wrapping)
     }
   }
 
@@ -127,14 +132,14 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
       // Remember by is -ve
       val toMove = affectedColumn.slice(affectedColumn.size + by, affectedColumn.size)
       val newColumn = toMove ++ affectedColumn.slice(0, affectedColumn.size + by)
-      Grid(values.zip(newColumn).map(p => p._1.updated(column, p._2)))
+      Grid(values.zip(newColumn).map(p => p._1.updated(column, p._2)), wrapping)
     } else {
       throw new UnsupportedOperationException("Rotate up not supported")
     }
   }
 
   def map[S](f: T => S): Grid[S] = {
-    Grid(values.map(row => row.map(f)))
+    Grid(values.map(row => row.map(f)), wrapping)
   }
 
   // The standard zipWithIndex assumes integer indices
@@ -143,7 +148,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
       row.zipWithIndex.map {
         case (v, re) => (v, Complex(re, -im))
       }
-    })
+    }, wrapping)
   }
 
   def indices: Vector[Complex[Int]] = {
@@ -193,20 +198,21 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   }
 
   override def toString: String = {
-    val gridString = values.map(row => row.mkString(",")).mkString("\n")
+    val gridString = values.map(row => row.mkString("")).mkString("\n")
 
     s"Grid(\n$gridString\n)"
   }
 }
 
 case object Grid {
-  def of[T](rows: Int, columns: Int, value: T): Grid[T] = {
+  def of[T](rows: Int, columns: Int, value: T, wrapping: Boolean = false): Grid[T] = {
     Grid(
-      Vector.fill(rows)(Vector.fill(columns)(value))
+      Vector.fill(rows)(Vector.fill(columns)(value)),
+      wrapping
     )
   }
 
-  def flatten[T](input: Grid[Grid[T]]): Grid[T] = {
+  def flatten[T](input: Grid[Grid[T]], wrapping: Boolean = false): Grid[T] = {
     Grid(input.values.flatMap { gridRow =>
       gridRow.map(_.values).reduce { (a, b) =>
         a.zip(b).map(p => p._1 ++ p._2)
