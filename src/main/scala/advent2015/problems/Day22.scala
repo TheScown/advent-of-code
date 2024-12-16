@@ -67,7 +67,7 @@ case class Day22(input: Vector[String]) extends Problem {
       }
     }
 
-    val result = finalState.manaConsumed
+    val result = finalState.get.manaConsumed
 
     println(s"Result 1: $result")
   }

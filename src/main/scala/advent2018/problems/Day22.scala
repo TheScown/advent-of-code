@@ -45,7 +45,7 @@ case class Day22(input: Vector[String]) extends Problem {
       moveStates :+ changeToolState
     }
 
-    val result = resultState.time
+    val result = resultState.get.time
 
     println(s"Result 2: $result")
   }

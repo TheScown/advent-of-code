@@ -61,14 +61,14 @@ case class Day22(input: Vector[String]) extends Problem {
     )(next)
 
     val resultState = Dijkstra.solve[State](
-      stateAtIntermediate,
+      stateAtIntermediate.get,
       Ordering.by[State, Int](_.score(targetAddress)).reverse,
       state => {
         state.grid(Complex.ZERO).address == targetAddress
       }
     ) (next)
 
-    val result = resultState.moves
+    val result = resultState.get.moves
 
     println(s"Result 2: $result")
   }
