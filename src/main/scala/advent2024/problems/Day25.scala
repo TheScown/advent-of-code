@@ -22,7 +22,7 @@ case class Day25(input: Vector[String]) extends Problem {
   }
 
   override def solve2(): Unit = {
-
+    println("Deliver the Chronicle!")
   }
 
   private def parse(): (Vector[Grid[Char]], Vector[Grid[Char]]) = {
