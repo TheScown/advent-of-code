@@ -76,6 +76,19 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     } yield Complex(address.re + i, address.im + j)
   }
 
+  def diagonals(address: Complex[Int]): IndexedSeq[Complex[Int]] = {
+    if (wrapping) {
+      throw new UnsupportedOperationException("Wrapping grid not yet supported")
+    }
+    else for {
+      i <- -1 to 1
+      j <- -1 to 1
+      if i != 0 && j != 0
+      if (address.re + i) >= 0 && (address.re + i) < rowLength
+      if (address.im + j) <= 0 && (address.im + j) > -columnLength
+    } yield Complex(address.re + i, address.im + j)
+  }
+
   def next(address: Complex[Int], delta: Complex[Int]): Complex[Int] = {
     val possibleNext = address + delta
 
