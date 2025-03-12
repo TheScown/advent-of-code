@@ -23,7 +23,7 @@ case class Day22(input: Vector[String]) extends Problem {
     val startState = State(Complex.ZERO, Torch, 0, Vector(), Map())
     val comparator: Ordering[State] = Ordering.by[State, Int](-_.score(target))
 
-    val resultState = Dijkstra.solve(startState, comparator, isGoal) { state =>
+    val resultState = Dijkstra.solve(startState)(comparator, isGoal) { state =>
       val currentTerrain = terrain(state.position)
 
       val moveStates = terrain.neighbours(state.position)

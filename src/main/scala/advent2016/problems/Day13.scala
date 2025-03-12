@@ -14,7 +14,7 @@ case class Day13(input: String) extends Problem {
 
     val start = Complex(1, 1)
 
-    val result = BFS.solve[Complex[Int]](start, _ == target) {
+    val result = BFS.solve(start)(_ == target) {
       (address, _) => validNeighbours(address)
     }.get.steps
 

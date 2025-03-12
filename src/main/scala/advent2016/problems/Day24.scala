@@ -47,7 +47,7 @@ case class Day24(input: Vector[String]) extends Problem {
       val startAddress = interestingAddresses(i)
       val destinationAddress = interestingAddresses(j)
 
-      val distance = BFS.solve[Complex[Int]](startAddress, state => state == destinationAddress) {
+      val distance = BFS.solve[Complex[Int]](startAddress)(state => state == destinationAddress) {
         (address, _) =>
           grid.neighbours(address)
             .filter(grid.apply(_) != '#')

@@ -6,7 +6,7 @@ import scala.collection.mutable
 
 case object Dijkstra {
 
-  def solve[T](start: T, comparator: Ordering[T], goal: T => Boolean)(next: T => Seq[T]): Option[T] = {
+  def solve[T](start: T)(comparator: Ordering[T], goal: T => Boolean)(next: T => Seq[T]): Option[T] = {
     val queue = mutable.PriorityQueue[T]()(comparator)
     queue.enqueue(start)
 

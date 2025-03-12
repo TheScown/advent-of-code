@@ -62,7 +62,7 @@ case class Day15(input: Vector[String]) extends Problem {
             else {
               val distancesToDestinations = neighbours.filterNot(otherUnits.map(_.position).contains).flatMap { n =>
                 val distances = possibleReachableDestinations.map { p =>
-                  (n, p, BFS.solve[Complex[Int]](n, _ == p) { (state, _) =>
+                  (n, p, BFS.solve[Complex[Int]](n)(_ == p) { (state, _) =>
                     grid.neighbours(state)
                       .filter(p => !grid.apply(p) && !otherUnits.map(_.position).contains(p))
                   }.get.steps + 1)

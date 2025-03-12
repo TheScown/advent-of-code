@@ -17,8 +17,9 @@ case class Day18(input: Vector[String]) extends Problem {
 
     val dependencyGraph = buildDependencies(Vector(start), keyPositions, grid, doorSet)
 
-    val resultState = Dijkstra.solve[State](
-      initialState,
+    val resultState = Dijkstra.solve(
+      initialState
+    )(
       Ordering.by[State, Int](_.steps).reverse,
       state => state.keys.size == keyCount
     ) { state =>
@@ -55,8 +56,9 @@ case class Day18(input: Vector[String]) extends Problem {
 
     val initialState = MultiState(starts, Set(), 0)
 
-    val resultState = Dijkstra.solve[MultiState](
-      initialState,
+    val resultState = Dijkstra.solve(
+      initialState
+    )(
       Ordering.by[MultiState, Int](_.steps).reverse,
       state => state.keys.size == keyCount
     ) { state =>

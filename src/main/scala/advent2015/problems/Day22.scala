@@ -19,8 +19,9 @@ case class Day22(input: Vector[String]) extends Problem {
 
     val allSpells = Seq(MagicMissile, Drain, Shield, Poison, Recharge)
 
-    val finalState = Dijkstra.solve[State](
-      initialState,
+    val finalState = Dijkstra.solve(
+      initialState
+    )(
       { case (x, y) => y.manaConsumed.compareTo(x.manaConsumed) },
       _.enemy.hitPoints <= 0
     ) { state =>

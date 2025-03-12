@@ -48,7 +48,7 @@ case class Day20(input: Vector[String]) extends Problem {
 
   private def getPath(start: Complex[Int], end: Complex[Int], grid: Grid[Char]): (Vector[Complex[Int]], Map[Complex[Int], Int]) = {
     val initialState = PathState(start, Vector())
-    val finalState = BFS.solve[PathState](initialState, _.position == end) { (state, _) =>
+    val finalState = BFS.solve(initialState)(_.position == end) { (state, _) =>
       state match {
         case PathState(position, path) =>
           grid.neighbours(position)

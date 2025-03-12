@@ -32,7 +32,7 @@ case class Day21(input: Vector[String]) extends Problem {
     val goal = (code: String) => (state: ArmState) => state.codeTyped == code
 
     val result = input.map { code =>
-      val finalState = BFS.solve(initialState, goal(code)) { (state, _) =>
+      val finalState = BFS.solve(initialState)(goal(code)) { (state, _) =>
         state match {
           case ArmState(arm3Position, intermediateArmPositions, arm1Position, codeTyped) =>
             // new states:

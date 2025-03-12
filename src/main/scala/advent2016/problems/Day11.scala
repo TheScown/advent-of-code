@@ -28,7 +28,7 @@ case class Day11(input: Vector[String]) extends Problem {
 
   private def solve(floors: Vector[Floor]): Int = {
     val initialState = State(0, floors)
-    val result = BFS.solve[State](initialState, s => s.isComplete) {
+    val result = BFS.solve(initialState)(s => s.isComplete) {
       case (State(elevatorFloor, floors), _) =>
         val minFloor = floors.indexWhere(f => f.things.nonEmpty)
         val nextFloors = Seq(elevatorFloor - 1, elevatorFloor + 1).filter(f => f >= minFloor && f < floors.size)

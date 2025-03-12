@@ -43,7 +43,7 @@ case class Day16(input: Vector[String]) extends Problem {
   }
 
   private def bestPathFrom(grid: Grid[Char], goal: Complex[Int], initialState: State): Option[State] = {
-    Dijkstra.solve[State](initialState, Ordering.by[State, Long](_.score).reverse, _.position == goal) { state =>
+    Dijkstra.solve(initialState)(Ordering.by[State, Long](_.score).reverse, _.position == goal) { state =>
       newStates(grid, state)
     }
   }

@@ -54,14 +54,16 @@ case class Day22(input: Vector[String]) extends Problem {
         nextStates
     }
 
-    val stateAtIntermediate = Dijkstra.solve[State](
-      initialState,
+    val stateAtIntermediate = Dijkstra.solve(
+      initialState
+    )(
       Ordering.by[State, Int](_.intermediateScore(intermediate)).reverse,
       state => state.emptyAddress == intermediate
     )(next)
 
     val resultState = Dijkstra.solve[State](
-      stateAtIntermediate.get,
+      stateAtIntermediate.get
+    )(
       Ordering.by[State, Int](_.score(targetAddress)).reverse,
       state => {
         state.grid(Complex.ZERO).address == targetAddress

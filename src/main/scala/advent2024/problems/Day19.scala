@@ -10,7 +10,7 @@ case class Day19(input: Vector[String]) extends Problem {
     val result = patterns.count { pattern =>
       val initialState = pattern
 
-      BFS.solve[String](initialState, _.isEmpty) { (remainingPattern, _) =>
+      BFS.solve[String](initialState)(_.isEmpty) { (remainingPattern, _) =>
         towels
           .filter(remainingPattern.startsWith)
           .map(towel => remainingPattern.substring(towel.length))

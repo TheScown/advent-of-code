@@ -26,7 +26,7 @@ case class Day6(input: Vector[String]) extends Problem {
     val graph = buildGraph(orbits)
 
     val startNode = graph.neighbours("YOU").head
-    val result = BFS.solve[String](startNode, state => orbits.getOrElse(state, Vector()).contains("SAN")) { (state, _) =>
+    val result = BFS.solve(startNode)(state => orbits.getOrElse(state, Vector()).contains("SAN")) { (state, _) =>
       graph.neighbours(state).toVector
     }.get.steps
 

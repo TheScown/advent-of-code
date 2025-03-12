@@ -35,7 +35,7 @@ case class Day15(input: Vector[String]) extends Problem {
   }
 
   private def findOxygenTank(initialState: State): BFS.PathState[State] = {
-    BFS.solve[State](initialState, _.isOxygen)((state, _) => expandState(state)).get
+    BFS.solve(initialState)(_.isOxygen)((state, _) => expandState(state)).get
   }
 
   private def expandState(state: State): Seq[State] =

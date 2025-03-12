@@ -18,7 +18,7 @@ case class Day17(input: Vector[String]) extends Problem {
   override def solve2(): Unit = {
     val (registers, program) = parse()
 
-    val finalState = BFS.solve[State](State(0, Vector()), _.outputs == program) {
+    val finalState = BFS.solve(State(0, Vector()))(_.outputs == program) {
       case (State(a, outputs), _) =>
         if (outputs.size > program.size) Seq()
         else {

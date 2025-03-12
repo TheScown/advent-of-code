@@ -15,7 +15,7 @@ case object BFS {
     }
   }
 
-  def solve[T](start: T, goal: T => Boolean)(next: (T, Int) => Seq[T]): Option[PathState[T]] = {
+  def solve[T](start: T)(goal: T => Boolean)(next: (T, Int) => Seq[T]): Option[PathState[T]] = {
     @tailrec
     def helper(queue: Queue[PathState[T]], seen: Set[T]): Option[PathState[T]] = {
       if (queue.isEmpty)

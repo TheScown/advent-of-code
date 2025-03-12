@@ -12,7 +12,7 @@ case class Day7(input: Vector[String]) extends Problem {
         equation.values.size == 1 && equation.values.head == equation.testValue
       }
 
-      BFS.solve(equation, goal) { (equation, _) =>
+      BFS.solve(equation)(goal) { (equation, _) =>
         if (equation.values.size == 1) Seq()
         else {
           val lhs = equation.values.head
@@ -42,7 +42,7 @@ case class Day7(input: Vector[String]) extends Problem {
         equation.values.size == 1 && equation.values.head == equation.testValue
       }
 
-      BFS.solve(equation, goal) { (equation, _) =>
+      BFS.solve(equation)(goal) { (equation, _) =>
         if (equation.values.size == 1) Seq()
         else {
           val lhs = equation.values.head

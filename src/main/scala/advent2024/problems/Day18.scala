@@ -37,7 +37,7 @@ case class Day18(input: Vector[String]) extends Problem {
   }
 
   private def bfs(grid: Grid[Boolean]) = {
-    BFS.solve[Complex[Int]](Complex.ZERO[Int], _ == Complex(70, -70)) { (p, _) =>
+    BFS.solve(Complex.ZERO[Int])(_ == Complex(70, -70)) { (p, _) =>
       Seq(Complex.ONE[Int], Complex.I[Int], -Complex.ONE[Int], -Complex.I[Int])
         .map(d => grid.next(p, d))
         .filterNot(n => p == n)
