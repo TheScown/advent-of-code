@@ -1,0 +1,42 @@
+start:
+IN p in
+
+fuel_loop:
+ADD p quot, i 0, i 0
+
+division_loop:
+ADD p quot, p quot, i 1
+MUL p product, i 3, p quot
+MUL p product, p product, i -1
+ADD p diff, p in, p product
+JEZ p diff, i fuel_calculated
+LT p is_quot, p diff, i 3
+JNZ p is_quot, i fuel_calculated
+JNZ i 1, i division_loop
+
+fuel_calculated:
+ADD p quot, p quot, i -2
+ADD p sum, p sum, p quot
+LT p needs_more_fuel, p quot, i 9
+JNZ p needs_more_fuel, i print
+ADD p in, i 0, p quot
+JNZ i 1, i fuel_loop
+
+print:
+OUT p sum
+JNZ i 1, i start
+
+in:
+0
+quot:
+0
+product:
+0
+diff:
+0
+sum:
+0
+is_quot:
+0
+needs_more_fuel:
+0

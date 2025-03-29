@@ -1,0 +1,29 @@
+start:
+IN p in
+ADD p quot, i 0, i 0
+division_loop:
+ADD p quot, p quot, i 1
+MUL p product, i 3, p quot
+MUL p product, p product, i -1
+ADD p diff, p in, p product
+JEZ p diff, i print
+LT p is_quot, p diff, i 3
+JNZ p is_quot, i print
+JNZ i 1, i division_loop
+print:
+ADD p sum, p sum, p quot
+ADD p sum, p sum, i -2
+OUT p sum
+JNZ i 1, i start
+in:
+0
+quot:
+0
+product:
+0
+diff:
+0
+sum:
+0
+is_quot:
+0
