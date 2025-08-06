@@ -96,5 +96,18 @@ object Integers {
     helper(n.zero, n.one, sorted)
   }
 
+  def exponentiationBySquaring[T](x: T, y: T)(implicit n: Integral[T]): T = {
+    val two = n.one + n.one
+
+    @tailrec
+    def helper(z: T, x: T, y: T): T = {
+      if (y == n.zero) z
+      else if (y % two == n.zero) helper(z, x * x, y / two)
+      else helper(x * z, x * x, (y - n.one) / two)
+    }
+
+    helper(n.one, x, y)
+  }
+
 }
 
