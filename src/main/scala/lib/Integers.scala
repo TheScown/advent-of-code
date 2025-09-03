@@ -76,6 +76,7 @@ object Integers {
     if (possibleResult < n.zero) possibleResult + multiplier else possibleResult
   }
 
+  // Debugging aid, not performant for large numbers
   def chineseRemainderTheoremSieve[T](pairs: Vector[(T, T)])(implicit n: Integral[T]): T = {
     def sequence(head: T, increment: T): LazyList[T] = {
       head #:: sequence(head + increment, increment)
