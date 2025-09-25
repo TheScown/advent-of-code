@@ -202,6 +202,10 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     values.flatten.find(p)
   }
 
+  def exists(p: T => Boolean): Boolean = {
+    values.flatten.exists(p)
+  }
+
   def size: Int = {
     rowLength * columnLength
   }
