@@ -1,95 +1,56 @@
 package space.scown.adventofcode
 package advent2020
 
-import lib.{Complex, Files, Grid, Problem}
+import lib.{Files, Grid, Problem}
 
 case class Day17(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
     val grid = Grid(input.map(_.toVector))
 
-    def emptyGrid(size: Int): Grid[Char] = Grid.of(size, size, '.')
+    val initialMap = grid.zipWithIndex.foldLeft(Map[(Int, Int, Int), Boolean]()) { case (map, (char, index)) =>
+      map + ((index.re, index.im, 0) -> isActive(char))
+    }
 
-    def updateGrid(grid: Grid[Char], above: Grid[Char], below: Grid[Char]): Grid[Char] = {
-      grid.zipWithIndex.map { case (c, index) =>
-        val localNeighbourAddresses = grid.neighboursWithDiagonals(index)
-        val neighbourAddresses = index +: localNeighbourAddresses
+    def neighbourCoordinates(x: Int, y: Int, z: Int): Seq[(Int, Int, Int)] = {
+      for {
+        k <- -1 to 1
+        i <- -1 to 1
+        j <- -1 to 1
+        if !(i == 0 && j == 0 && k == 0)
+      } yield (x + i, y + j, z + k)
+    }
 
-        val localNeighbours = localNeighbourAddresses.map(grid.apply)
-        val aboveNeighbours = neighbourAddresses.map(above.apply)
-        val belowNeighbours = neighbourAddresses.map(below.apply)
+    val finalMap = (0 until 6).foldLeft(initialMap) { case (map, _) =>
+      val activeEntries = map.filter(_._2).keys
+      val minX = activeEntries.minBy(_._1)._1
+      val maxX = activeEntries.maxBy(_._1)._1
+      val minY = activeEntries.minBy(_._2)._2
+      val maxY = activeEntries.maxBy(_._2)._2
+      val minZ = activeEntries.minBy(_._3)._3
+      val maxZ = activeEntries.maxBy(_._3)._3
 
-        val activeNeighbours = localNeighbours.count(isActive) + aboveNeighbours.count(isActive) + belowNeighbours.count(isActive)
+      val updatedMap = (for {
+        i <- minX - 1 to maxX + 1
+        j <- minY - 1 to maxY + 1
+        k <- minZ - 1 to maxZ + 1
+      } yield {
+        val currentValue = map.getOrElse((i, j, k), false)
+        val neighbours = neighbourCoordinates(i, j, k)
+        val neighbourValues = neighbours.map(map.getOrElse(_, false))
+        val activeNeighbours = neighbourValues.count(b => b)
 
-        if (isActive(c)) {
-          if (activeNeighbours == 2 || activeNeighbours == 3) '#' else '.'
+        if (currentValue) {
+          ((i, j, k), activeNeighbours == 2 || activeNeighbours == 3)
         }
         else {
-          if (activeNeighbours == 3) '#' else '.'
+          ((i, j, k), activeNeighbours == 3)
         }
-      }
+      }).toMap
+
+      updatedMap
     }
 
-    def expandGrid(grid: Grid[Char]): Grid[Char] = {
-      val newSize = grid.rowLength + 2
-      val newGrid = emptyGrid(newSize)
-
-      newGrid.updated(Complex(1, -1), grid)
-    }
-
-    def hasActiveEdge(grid: Grid[Char]): Boolean = {
-      val edgeAddresses = grid.indices.filter { address =>
-        (address.re == 0 || address.re == grid.rowLength - 1) || (address.im == 0 || address.im == -(grid.columnLength - 1))
-      }
-      edgeAddresses.exists(address => isActive(grid(address)))
-    }
-
-    def travel(grid: Grid[Char], otherGrids: List[Grid[Char]]): List[Grid[Char]] = {
-      val affectsOtherGrid = grid.exists(isActive)
-
-      if (otherGrids.isEmpty && !affectsOtherGrid) otherGrids
-      else {
-        val nextGrid = if (otherGrids.isEmpty) emptyGrid(grid.rowLength) else otherGrids.head
-        val tail = if (otherGrids.isEmpty) Nil else otherGrids.tail
-        val nextNextGrid = if (tail.isEmpty) emptyGrid(grid.rowLength) else tail.head
-
-        val updatedGrid = updateGrid(nextGrid, grid, nextNextGrid)
-
-        updatedGrid :: travel(nextGrid, tail)
-      }
-    }
-
-    println(grid)
-
-    val (finalGrid, finalAbove, finalBelow) = (0 until  6).foldLeft((grid, List[Grid[Char]](), List[Grid[Char]]())) { case ((grid, above, below), i) =>
-      println(i)
-
-      val needsExpansion = hasActiveEdge(grid)
-
-      val (expandedGrid, expandedAbove, expandedBelow) = if (!needsExpansion) (grid, above, below) else {
-        val expandedGrid = expandGrid(grid)
-        val expandedAbove = above.map(expandGrid)
-        val expandedBelow = below.map(expandGrid)
-
-        (expandedGrid, expandedAbove, expandedBelow)
-      }
-
-      val aboveGrid = if (expandedAbove.nonEmpty) expandedAbove.head else emptyGrid(expandedGrid.rowLength)
-      val belowGrid = if (expandedBelow.nonEmpty) expandedBelow.head else emptyGrid(expandedGrid.rowLength)
-
-      val updatedGrid = updateGrid(expandedGrid, aboveGrid, belowGrid)
-      val updatedAbove = travel(expandedGrid, expandedAbove)
-      val updatedBelow = travel(expandedGrid, expandedBelow)
-
-      println(updatedAbove)
-      println(updatedGrid)
-      println(updatedBelow)
-
-      (updatedGrid, updatedAbove, updatedBelow)
-    }
-
-    val result = finalGrid.count(isActive) +
-      finalAbove.map(_.count(isActive)).sum +
-      finalBelow.map(_.count(isActive)).sum
+    val result = finalMap.count { _._2 }
 
     println(s"Result 1: $result")
   }
