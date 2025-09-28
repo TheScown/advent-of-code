@@ -3,7 +3,6 @@ package advent2020
 
 import lib.{Files, Problem}
 
-import scala.annotation.tailrec
 import scala.language.postfixOps
 import scala.util.parsing.combinator.RegexParsers
 
@@ -51,55 +50,17 @@ case class Day18(input: Vector[String]) extends Problem {
   override def solve2(): Unit = {
     val tokenSequences = input.map {
       line =>
-        Grammar.parseAll(Grammar.tokens, line) match {
-          case Grammar.Success(result, _) => result.toVector
-          case Grammar.NoSuccess.I(msg, next) =>
+        ExpressionGrammar.parseAll(ExpressionGrammar.expression, line) match {
+          case ExpressionGrammar.Success(result, _) => result
+          case ExpressionGrammar.NoSuccess.I(msg, next) =>
             throw new IllegalArgumentException(s"$msg,$next")
         }
     }
 
-    def evaluate(tokens: Vector[Token]): Long = {
-      val withEvaluatedParens = evaluateParens(tokens)
-      val withEvaluatedSums = evaluateSums(withEvaluatedParens, Vector())
-      evaluateProducts(withEvaluatedSums)
-    }
-
-    def evaluateParens(tokens: Vector[Token]): Vector[Token] = {
-      tokens.map {
-        case Parens(tokens) => Value(evaluate(tokens))
-        case v@Value(_) => v
-        case Add => Add
-        case Multiply => Multiply
-      }
-    }
-
-    @tailrec
-    def evaluateSums(tokens: Vector[Token], intermediate: Vector[Token]): Vector[Token] = {
-      tokens match {
-        case Vector(v@Value(_)) => intermediate :+ v
-        case lhs +: op +: rhs +: rest => op match {
-          case Multiply => evaluateSums(rhs +: rest, intermediate :+ lhs :+ op)
-          case Add =>
-            val lhsValue = lhs match {
-              case Value(i) => i
-            }
-
-            val rhsValue = rhs match {
-              case Value(i) => i
-            }
-
-            val result = lhsValue + rhsValue
-
-            evaluateSums(Value(result) +: rest, intermediate)
-        }
-      }
-    }
-
-    def evaluateProducts(tokens: Vector[Token]): Long = {
-      tokens.map{
-        case Value(x) => x
-        case _ => 1
-      }.product
+    def evaluate(expression: Expression): Long = expression match {
+      case ValueExpression(x) => x
+      case AddExpression(lhs, rhs) => evaluate(lhs) + evaluate(rhs)
+      case MultiplyExpression(lhs, rhs) => evaluate(lhs) * evaluate(rhs)
     }
 
     val results = tokenSequences.map(tokens => evaluate(tokens))
@@ -115,6 +76,10 @@ case class Day18(input: Vector[String]) extends Problem {
   private case class Value(i: Long) extends Token
   private case class Parens(tokens: Vector[Token]) extends Token
 
+  private sealed trait Expression
+  private case class MultiplyExpression(lhs: Expression, rhs: Expression) extends Expression
+  private case class AddExpression(lhs: Expression, rhs: Expression) extends Expression
+  private case class ValueExpression(value: Long) extends Expression
 
   private case object Grammar extends RegexParsers {
     def tokens: Parser[List[Token]] = token *
@@ -128,6 +93,28 @@ case class Day18(input: Vector[String]) extends Problem {
     def add: Parser[Token] = "+" ^^ (_ => Add)
 
     def multiply: Parser[Token] = "*" ^^ (_ => Multiply)
+  }
+
+  private case object ExpressionGrammar extends RegexParsers {
+    def expression: Parser[Expression] = multiply
+
+    def multiply: Parser[Expression] = (add ~ rep("*" ~> add)) ^^ {
+      case lhs ~ Nil => lhs
+      case lhs ~ list => list.foldLeft(lhs) { (acc, expr) =>
+        MultiplyExpression(acc, expr)
+      }
+    }
+
+    def add: Parser[Expression] = (primary ~ rep("+" ~> primary)) ^^ {
+      case lhs ~ Nil => lhs
+      case lhs ~ list => list.foldLeft(lhs) { (acc, expr) =>
+        AddExpression(acc, expr)
+      }
+    }
+
+    def primary: Parser[Expression] = parens | value
+    def parens: Parser[Expression] = "(" ~> expression <~ ")"
+    def value: Parser[Expression] = "\\d+".r ^^ (s => ValueExpression(s.toLong))
   }
 }
 
