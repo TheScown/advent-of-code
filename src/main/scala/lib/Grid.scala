@@ -121,6 +121,11 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   def flipHorizontally(): Grid[T] = Grid(values.map(_.reverse), wrapping)
   def flipVertically(): Grid[T] = Grid(values.reverse, wrapping)
 
+  def firstRow: Vector[T] = values.head
+  def lastRow: Vector[T] = values.last
+  def firstColumn: Vector[T] = values.map(_.head)
+  def lastColumn: Vector[T] = values.map(_.last)
+
   def rotateRow(row: Int, by: Int): Grid[T] = {
     if (by == 0) return this
 
@@ -206,6 +211,10 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     values.flatten.exists(p)
   }
 
+  def forall(p: T => Boolean): Boolean = {
+    values.flatten.forall(p)
+  }
+
   def size: Int = {
     rowLength * columnLength
   }
@@ -234,7 +243,7 @@ case object Grid {
       gridRow.map(_.values).reduce { (a, b) =>
         a.zip(b).map(p => p._1 ++ p._2)
       }
-    })
+    }, wrapping)
   }
 
   /**
