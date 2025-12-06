@@ -247,6 +247,20 @@ case object Grid {
   }
 
   /**
+   * Pad lines to equal length to better facilitate construction of a Grid
+   * @param input The input lines to pad
+   * @return Lines padded to equal length
+   */
+  def padLines(input: Vector[String]): Vector[String] = {
+    val maxLineLength = input.maxBy(_.length).length
+
+    input.map { line =>
+      if (line.length == maxLineLength) line
+      else line + (" " * (maxLineLength - line.length))
+    }
+  }
+
+  /**
    *
    * @param summedArea A grid produced by calling areaSum on another grid
    * @param address The top left corner of the region

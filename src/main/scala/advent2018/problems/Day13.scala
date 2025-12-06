@@ -170,12 +170,7 @@ case class Day13(input: Vector[String]) extends Problem {
   }
 
   private def parse(): Grid[Char] = {
-    val maxLineLength = input.maxBy(_.length).length
-
-    val paddedLines = input.map { line =>
-      if (line.length == maxLineLength) line
-      else line + (" " * (maxLineLength - line.length))
-    }
+    val paddedLines = Grid.padLines(input)
 
     Grid(paddedLines.map(_.toVector))
   }
