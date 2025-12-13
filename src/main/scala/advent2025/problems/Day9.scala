@@ -44,54 +44,59 @@ case class Day9(input: Vector[String]) extends Problem {
     val cache = mutable.Map[Complex[Long], Boolean]()
 
     val bestRectangle = areas.find { case (a, b, _) =>
-      val edges = Seq(
-        a,
-        Complex(a.re, b.im),
-        b,
-        Complex(b.re, a.im),
-        a
-      ).sliding(2).toVector
+      val (newCorner1, newCorner2) = (Complex(a.re, b.im), Complex(b.re, a.im))
 
-      edges.forall {
-        case Seq(a, b) =>
-          val edgeIsVertical = a.re == b.re
-          val edgesToTest = if (edgeIsVertical) horizontalEdges else verticalEdges
+      if (!isTileInPolygon(newCorner1, polygonEdges, tileSet, cache) || !isTileInPolygon(newCorner2, polygonEdges, tileSet, cache)) false
+      else {
+        val edges = Seq(
+          a,
+          Complex(a.re, b.im),
+          b,
+          Complex(b.re, a.im),
+          a
+        ).sliding(2).toVector
 
-          // If a rectangle edge is crossed by a polygon edge, it isn't valid
-          val crossingEdges = edgesToTest.filter { case (c, d, _) =>
-            if (edgeIsVertical) {
-              ((c.im < a.im && c.im > b.im) || (c.im > a.im && c.im < b.im)) && ((c.re < a.re && d.re > a.re) || (c.re > a.re && d.re < a.re))
-            }
-            else {
-              ((c.re < a.re && c.re > b.re) || (c.re > a.re && c.re < b.re)) && ((c.im < a.im && d.im > a.im) || (c.im > a.im && d.im < a.im))
-            }
-          }
+        edges.forall {
+          case Seq(a, b) =>
+            val edgeIsVertical = a.re == b.re
+            val perpendicularEdgesToTest = if (edgeIsVertical) horizontalEdges else verticalEdges
 
-          if (crossingEdges.nonEmpty) {
-            false
-          }
-          else {
-            if (a.re == b.re) {
-              val minIm = math.min(a.im, b.im)
-              val maxIm = math.max(a.im, b.im)
-
-              (minIm to maxIm).forall { im =>
-                val tile = Complex(a.re, im)
-
-                isTileInPolygon(tile, polygonEdges, tileSet, cache)
+            // If a rectangle edge is crossed by a polygon edge, it isn't valid
+            val crossingEdges = perpendicularEdgesToTest.filter { case (c, d, _) =>
+              if (edgeIsVertical) {
+                ((c.im < a.im && c.im > b.im) || (c.im > a.im && c.im < b.im)) && ((c.re < a.re && d.re > a.re) || (c.re > a.re && d.re < a.re))
+              }
+              else {
+                ((c.re < a.re && c.re > b.re) || (c.re > a.re && c.re < b.re)) && ((c.im < a.im && d.im > a.im) || (c.im > a.im && d.im < a.im))
               }
             }
+
+            if (crossingEdges.nonEmpty) {
+              false
+            }
             else {
-              val minRe = math.min(a.re, b.re)
-              val maxRe = math.max(a.re, b.re)
+              if (a.re == b.re) {
+                val minIm = math.min(a.im, b.im)
+                val maxIm = math.max(a.im, b.im)
 
-              (minRe to maxRe).forall { re =>
-                val tile = Complex(re, a.im)
+                (minIm to maxIm).forall { im =>
+                  val tile = Complex(a.re, im)
 
-                isTileInPolygon(tile, polygonEdges, tileSet, cache)
+                  isTileInPolygon(tile, polygonEdges, tileSet, cache)
+                }
+              }
+              else {
+                val minRe = math.min(a.re, b.re)
+                val maxRe = math.max(a.re, b.re)
+
+                (minRe to maxRe).forall { re =>
+                  val tile = Complex(re, a.im)
+
+                  isTileInPolygon(tile, polygonEdges, tileSet, cache)
+                }
               }
             }
-          }
+        }
       }
     }.get
 
