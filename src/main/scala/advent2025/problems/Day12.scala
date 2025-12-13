@@ -25,47 +25,50 @@ case class Day12(input: Vector[String]) extends Problem {
     val result = instructions.count {
       case Instruction(width, height, requirements) =>
         val area = width * height
+        val areaInTiles = (width / 3) * (height / 3)
+        val totalTiles = requirements.sum
+
         val requiredArea = requirements.zip(tiles).map { case (requirement, tile) =>
           requirement * tile.count(_ == '#')
         }.sum
 
-        area >= requiredArea
+        if (areaInTiles >= totalTiles) true
+        else if (requiredArea >= area) false
+        else {
+          // The below very slowly finds a real placement
+          // In practice, this branch doesn't get triggered for a real input
+          val grid = Grid.of(height, width, '.')
+          val initialState = (grid, requirements)
 
-        // The below very slowly finds a real placement, but it turns out to be unnecessary...
-        //        val result = if (area < requiredArea) false
-//        else {
-//          val grid = Grid.of(height, width, '.')
-//          val initialState = (grid, requirements)
-//
-//          DFS.solve(initialState)(state => state._2.forall(_ == 0)) { case ((grid, requirements), _) =>
-//            allTilePermutations.flatMap { permutations =>
-//              permutations._1.flatMap { tile =>
-//                if (requirements(permutations._2) == 0) Seq[(Grid[Char], Vector[Int])]()
-//                else {
-//                  val possiblePlacements = grid.zipWithIndex.filter { case (c, address) =>
-//                    if (-(address + Complex(0, -tile.columnLength)).im > grid.columnLength) false
-//                    else if ((address + Complex(tile.rowLength, 0)).re > grid.rowLength) false
-//                    else {
-//                      val slice = grid.slice(address, tile.rowLength, tile.columnLength)
-//                      slice.zipWithIndex.forall { case (s, sliceAddress) =>
-//                        if (tile(sliceAddress) == '#') s == '.'
-//                        else true
-//                      }
-//                    }
-//                  }.map(_._2)
-//
-//                  val updatedGrids = possiblePlacements.map { (address) =>
-//                    grid.updated(address, tile)
-//                  }
-//
-//                  updatedGrids.map { grid =>
-//                    (grid, requirements.updated(permutations._2, requirements(permutations._2) - 1))
-//                  }
-//                }
-//              }
-//            }
-//          }.isDefined
-//        }
+          DFS.solve(initialState)(state => state._2.forall(_ == 0)) { case ((grid, requirements), _) =>
+            allTilePermutations.flatMap { permutations =>
+              permutations._1.flatMap { tile =>
+                if (requirements(permutations._2) == 0) Seq[(Grid[Char], Vector[Int])]()
+                else {
+                  val possiblePlacements = grid.zipWithIndex.filter { case (c, address) =>
+                    if (-(address + Complex(0, -tile.columnLength)).im > grid.columnLength) false
+                    else if ((address + Complex(tile.rowLength, 0)).re > grid.rowLength) false
+                    else {
+                      val slice = grid.slice(address, tile.rowLength, tile.columnLength)
+                      slice.zipWithIndex.forall { case (s, sliceAddress) =>
+                          if (tile(sliceAddress) == '#') s == '.'
+                          else true
+                        }
+                      }
+                    }.map(_._2)
+
+                    val updatedGrids = possiblePlacements.map { address =>
+                      grid.updated(address, tile)
+                    }
+
+                    updatedGrids.map { grid =>
+                      (grid, requirements.updated(permutations._2, requirements(permutations._2) - 1))
+                    }
+                  }
+                }
+              }
+            }.isDefined
+        }
     }
 
     println(s"Result 1: $result")
