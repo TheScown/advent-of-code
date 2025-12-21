@@ -62,7 +62,7 @@ case class Day9(input: Vector[String]) extends Problem {
             val perpendicularEdgesToTest = if (edgeIsVertical) horizontalEdges else verticalEdges
 
             // If a rectangle edge is crossed by a polygon edge, it isn't valid
-            val crossingEdges = perpendicularEdgesToTest.filter { case (c, d, _) =>
+            val crossingEdges = perpendicularEdgesToTest.exists { case (c, d, _) =>
               if (edgeIsVertical) {
                 ((c.im < a.im && c.im > b.im) || (c.im > a.im && c.im < b.im)) && ((c.re < a.re && d.re > a.re) || (c.re > a.re && d.re < a.re))
               }
@@ -71,7 +71,7 @@ case class Day9(input: Vector[String]) extends Problem {
               }
             }
 
-            if (crossingEdges.nonEmpty) {
+            if (crossingEdges) {
               false
             }
             else {
