@@ -1,9 +1,7 @@
 package space.scown.adventofcode
 package advent2025.problems
 
-import lib.{Complex, Files, Problem, Timer}
-
-import scala.collection.mutable
+import lib.{Complex, Files, Grid, Problem, Timer}
 
 case class Day9(input: Vector[String]) extends Problem {
   override def solve1(): Unit = {
@@ -33,7 +31,7 @@ case class Day9(input: Vector[String]) extends Problem {
         (a, b, width * height)
     }.toVector.sortBy(-_._3)
 
-    val polygonEdges = redTiles.sliding(2).map {
+    val polygonEdges = (redTiles :+ redTiles.head).sliding(2).map {
       case Vector(a, b) => (a, b, a.re == b.re)
     }.toVector
 
@@ -41,12 +39,10 @@ case class Day9(input: Vector[String]) extends Problem {
 
     val tileSet = redTiles.toSet
 
-    val cache = mutable.Map[Complex[Long], Boolean]()
-
     val bestRectangle = areas.find { case (a, b, _) =>
       val (newCorner1, newCorner2) = (Complex(a.re, b.im), Complex(b.re, a.im))
 
-      if (!isTileInPolygon(newCorner1, polygonEdges, tileSet, cache) || !isTileInPolygon(newCorner2, polygonEdges, tileSet, cache)) false
+      if (!isTileInPolygon(newCorner1, polygonEdges, tileSet) || !isTileInPolygon(newCorner2, polygonEdges, tileSet)) false
       else {
         val edges = Seq(
           a,
@@ -62,40 +58,24 @@ case class Day9(input: Vector[String]) extends Problem {
             val perpendicularEdgesToTest = if (edgeIsVertical) horizontalEdges else verticalEdges
 
             // If a rectangle edge is crossed by a polygon edge, it isn't valid
-            val crossingEdges = perpendicularEdgesToTest.exists { case (c, d, _) =>
+            val crossesAnEdge = perpendicularEdgesToTest.exists { case (c, d, _) =>
               if (edgeIsVertical) {
-                ((c.im < a.im && c.im > b.im) || (c.im > a.im && c.im < b.im)) && ((c.re < a.re && d.re > a.re) || (c.re > a.re && d.re < a.re))
+                val minRe = math.min(c.re, d.re)
+                val maxRe = math.max(c.re, d.re)
+                val im = c.im
+
+                ((im < a.im && im > b.im) || (im > a.im && im < b.im)) && (a.re > minRe && a.re < maxRe)
               }
               else {
-                ((c.re < a.re && c.re > b.re) || (c.re > a.re && c.re < b.re)) && ((c.im < a.im && d.im > a.im) || (c.im > a.im && d.im < a.im))
+                val minIm = math.min(c.im, d.im)
+                val maxIm = math.max(c.im, d.im)
+                val re = c.re
+
+                ((re < a.re && re > b.re) || (re > a.re && re < b.re)) && (a.im > minIm && a.im < maxIm)
               }
             }
 
-            if (crossingEdges) {
-              false
-            }
-            else {
-              if (a.re == b.re) {
-                val minIm = math.min(a.im, b.im)
-                val maxIm = math.max(a.im, b.im)
-
-                (minIm to maxIm).forall { im =>
-                  val tile = Complex(a.re, im)
-
-                  isTileInPolygon(tile, polygonEdges, tileSet, cache)
-                }
-              }
-              else {
-                val minRe = math.min(a.re, b.re)
-                val maxRe = math.max(a.re, b.re)
-
-                (minRe to maxRe).forall { re =>
-                  val tile = Complex(re, a.im)
-
-                  isTileInPolygon(tile, polygonEdges, tileSet, cache)
-                }
-              }
-            }
+            !crossesAnEdge
         }
       }
     }.get
@@ -105,60 +85,48 @@ case class Day9(input: Vector[String]) extends Problem {
     println(s"Result 2: $result")
   }
 
-  private def isTileInPolygon(tileToTest: Complex[Long], polygonEdges: Vector[(Complex[Long], Complex[Long], Boolean)], tileSet: Set[Complex[Long]], cache: mutable.Map[Complex[Long], Boolean]): Boolean = {
-    if (cache.contains(tileToTest)) cache(tileToTest)
+  private def isTileInPolygon(tileToTest: Complex[Long], polygonEdges: Vector[(Complex[Long], Complex[Long], Boolean)], tileSet: Set[Complex[Long]]): Boolean = {
+    val (verticalEdges, horizontalEdges) = polygonEdges.partition(_._3)
+
+    // Red tiles are trivially in the shape
+    if (tileSet.contains(tileToTest)) true
+    // Tiles on the edge of the polygon are considered part of the shape
+    else if (isOnEdge(tileToTest, polygonEdges)) true
     else {
-      val (verticalEdges, horizontalEdges) = polygonEdges.partition(_._3)
+      // Head north from the tile, counting the edges crossed
+      // Odd means in the shape, even means outside
+      val im = tileToTest.im
 
-      // Red tiles are trivially in the shape
-      if (tileSet.contains(tileToTest)) {
-        cache.put(tileToTest, true)
-        true
+      val horizontalEdgesToTest = horizontalEdges.filter(_._1.im > im)
+
+      // Detecting a crossed horizontal edge is easy
+      val crossedEdges = horizontalEdgesToTest.count {
+        case (a, b, _) =>
+          (tileToTest.re > a.re && tileToTest.re < b.re) || (tileToTest.re < a.re && tileToTest.re > b.re)
       }
-      // Tiles on the edge of the polygon are considered part of the shape
-      else if (isOnEdge(tileToTest, polygonEdges)) {
-        cache.put(tileToTest, true)
 
-        true
+      // We only count vertical edges if one of the ends is concave (S or Z shape locally)
+      val crossedVerticalEdges = verticalEdges.count {
+        case (a, b, _) =>
+          if (tileToTest.re != a.re) false
+          else if (a.im < tileToTest.im || b.im < tileToTest.im) false
+          else {
+            val aNeighbours = (
+              Complex(a.re - 1, a.im),
+              Complex(a.re + 1, a.im),
+            )
+
+            val bNeighbours = (
+              Complex(b.re - 1, b.im),
+              Complex(b.re + 1, b.im),
+            )
+
+            (isOnEdge(aNeighbours._1, polygonEdges) && isOnEdge(bNeighbours._2, polygonEdges)) ||
+              (isOnEdge(aNeighbours._2, polygonEdges) && isOnEdge(bNeighbours._1, polygonEdges))
+          }
       }
-      else {
-        // Head north from the tile, counting the edges crossed
-        // Odd means in the shape, even means outside
-        val im = tileToTest.im
 
-        val horizontalEdgesToTest = horizontalEdges.filter(_._1.im > im)
-
-        // Detecting a crossed horizontal edge is easy
-        val crossedEdges = horizontalEdgesToTest.count {
-          case (a, b, _) =>
-            (tileToTest.re > a.re && tileToTest.re < b.re) || (tileToTest.re < a.re && tileToTest.re > b.re)
-        }
-
-        // We only count vertical edges if one of the ends is concave (S or Z shape locally)
-        val crossedVerticalEdges = verticalEdges.count {
-          case (a, b, _) =>
-            if (tileToTest.re != a.re) false
-            else if (a.im < tileToTest.im || b.im < tileToTest.im) false
-            else {
-              val aNeighbours = (
-                Complex(a.re - 1, a.im),
-                Complex(a.re + 1, a.im),
-              )
-
-              val bNeighbours = (
-                Complex(b.re - 1, b.im),
-                Complex(b.re + 1, b.im),
-              )
-
-              (isOnEdge(aNeighbours._1, polygonEdges) && isOnEdge(bNeighbours._2, polygonEdges)) ||
-                (isOnEdge(aNeighbours._2, polygonEdges) && isOnEdge(bNeighbours._1, polygonEdges))
-            }
-        }
-
-        val inPolygon = (crossedEdges + crossedVerticalEdges) % 2 != 0
-        cache.put(tileToTest, inPolygon)
-        inPolygon
-      }
+      (crossedEdges + crossedVerticalEdges) % 2 != 0
     }
   }
 
@@ -183,6 +151,27 @@ case class Day9(input: Vector[String]) extends Problem {
       val parts = line.split(",")
       Complex(parts(0).toLong, -parts(1).toLong)
     }
+  }
+
+  private def visualize(point: Complex[Long], tileSet: Set[Complex[Long]], polygonEdges: Vector[(Complex[Long], Complex[Long], Boolean)]): Unit = {
+    val visibility = 10
+    val gridSize = 2 * visibility + 1
+
+    val locality = Grid.of(gridSize, gridSize, '.').zipWithIndex.map { case (_, index) =>
+      val offset = Complex(index.re.toLong - visibility.toLong, index.im.toLong + visibility.toLong)
+      val tile = offset + point
+
+      val result = if (tile == point && tileSet.contains(tile)) 'P'
+      else if (tile == point) 'X'
+      else if (tileSet.contains(tile)) 'R'
+      else if (isTileInPolygon(tile, polygonEdges, tileSet)) '#'
+      else '.'
+
+      result
+    }
+
+    println(point)
+    println(locality)
   }
 }
 
