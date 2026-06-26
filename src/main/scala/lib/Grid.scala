@@ -43,6 +43,9 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
     }, wrapping)
   }
 
+  def row(index: Int): Grid[T] = slice(Complex(0, index), rowLength, 1)
+  def column(index: Int): Grid[T] = slice(Complex(index, 0), 1, columnLength)
+
   def summedArea[B >: T](implicit num: Numeric[B]): Grid[B] = {
     indices.foldLeft(Grid.of(columnLength, rowLength, num.zero, wrapping)) { (acc, c) =>
       acc.updated(c, acc.getOrElse(c - Complex.ONE(IntIsIntegral), num.zero) + acc.getOrElse(c + Complex.I(IntIsIntegral), num.zero) - acc.getOrElse(c - Complex.ONE(IntIsIntegral) + Complex.I(IntIsIntegral), num.zero) + this(c))
