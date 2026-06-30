@@ -1,6 +1,7 @@
 package space.scown.adventofcode
 package lib
 
+import scala.annotation.tailrec
 import scala.collection.immutable.NumericRange
 import scala.language.implicitConversions
 import scala.math.Integral.Implicits.infixIntegralOps
@@ -77,22 +78,43 @@ case object Complex {
 
   def linearRange[T](start: Complex[T], end: Complex[T], step: Complex[T], inclusive: Boolean = false)(implicit n: Integral[T]): IndexedSeq[Complex[T]] = {
     if (inclusive) {
-      if (start.re == end.re) {
+      if (start == end) {
+        IndexedSeq(start)
+      }
+      else if (start.re == end.re) {
         new NumericRange.Inclusive[T](start.im, end.im, step.im).map(im => Complex(start.re, im))
       }
       else if (start.im == end.im) {
         new NumericRange.Inclusive[T](start.re, end.re, step.re).map(re => Complex(re, start.im))
       }
-      else throw new IllegalArgumentException(s"Non linear range $start to $end by $step")
+      else {
+        @tailrec
+        def helper(range: IndexedSeq[Complex[T]]): IndexedSeq[Complex[T]] = {
+          val previous = range.last
+
+          if (
+            (n.gt(step.re, n.zero) && n.gteq(previous.re, end.re)) ||
+              (n.lt(step.re, n.zero) && n.lteq(previous.re, end.re)) ||
+              (n.gt(step.im, n.zero) && n.gteq(previous.im, end.im)) ||
+              (n.lt(step.im, n.zero) && n.lteq(previous.im, end.im))
+          ) range
+          else helper(range :+ previous + step)
+        }
+
+        helper(IndexedSeq(start))
+      }
     }
     else {
-      if (start.re == end.re) {
+      if (start == end) {
+        IndexedSeq.empty
+      }
+      else if (start.re == end.re) {
         new NumericRange.Exclusive[T](start.im, end.im, step.im).map(im => Complex(start.re, im))
       }
       else if (start.im == end.im) {
         new NumericRange.Exclusive[T](start.re, end.re, step.re).map(re => Complex(re, start.im))
       }
-      else throw new IllegalArgumentException(s"Non linear range $start to $end by $step")
+      else throw new IllegalArgumentException(s"Non linear exclusive range $start to $end by $step")
     }
   }
 
