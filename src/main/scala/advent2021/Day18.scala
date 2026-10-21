@@ -1,18 +1,20 @@
 package space.scown.adventofcode
 package advent2021
 
-import lib.{Files, Problem, Timer}
+import lib.{Files, Problem, Timer, Zipper}
 
 import scala.annotation.tailrec
 import scala.util.parsing.combinator.RegexParsers
 
 case class Day18(input: Vector[String]) extends Problem {
+  type SnailfishNumber = Zipper.Tree[Int]
+
   override def solve1(): Unit = {
     val numbers = parse()
 
     val sum = numbers.reduce(add)
 
-    val result = sum.magnitude
+    val result = magnitude(sum)
 
     println(s"Result 1: $result")
   }
@@ -21,57 +23,37 @@ case class Day18(input: Vector[String]) extends Problem {
     val numbers = parse()
 
     val result = numbers.combinations(2).map { case Vector(a, b) =>
-      math.max(add(a, b).magnitude, add(b, a).magnitude)
+      math.max(magnitude(add(a, b)), magnitude(add(b, a)))
     }.max
 
     println(s"Result 2: $result")
   }
 
-  private def parse(): Vector[Pair] = {
+  private def parse(): Vector[SnailfishNumber] = {
     input.filter(_.nonEmpty).map { line =>
       Grammar.parse(Grammar.pair, line)
     }.map(_.get)
   }
 
+  private def magnitude(tree: SnailfishNumber): Int = tree match {
+    case Zipper.Leaf(x) => x
+    case Zipper.Fork(l, r) => 3 * magnitude(l) + 2 * magnitude(r)
+  }
+
   private def add(lhs: SnailfishNumber, rhs: SnailfishNumber): SnailfishNumber = {
-    val sum = Pair(lhs, rhs)
+    val sum = Zipper.Fork(lhs, rhs)
 
     @tailrec
     def reduce(input: SnailfishNumber): SnailfishNumber = {
-      def parentMap(input: SnailfishNumber): Map[SnailfishNumber, Pair] = {
-        def helper(current: SnailfishNumber, map: Map[SnailfishNumber, Pair]): Map[SnailfishNumber, Pair] = {
-          current match {
-            case RegularNumber(_) => map
-            case p@Pair(lhs, rhs) =>
-              val updated = map + (lhs -> p) + (rhs -> p)
-              helper(rhs, helper(lhs, updated))
-          }
-        }
-
-        helper(input, Map())
-      }
-
-      @tailrec
-      def replace(current: SnailfishNumber, replacement: SnailfishNumber, parents: Map[SnailfishNumber, Pair]): SnailfishNumber = {
-        parents.get(current) match {
-          case Some(parent) =>
-            val newParent = if (parent.lhs == current) parent.copy(lhs = replacement) else parent.copy(rhs = replacement)
-            replace(parent, newParent, parents)
-          case None => replacement
-        }
-      }
-
       def explode(root: SnailfishNumber): SnailfishNumber = {
-        val parents = parentMap(root)
-
-        def findDeepValue(current: SnailfishNumber, depth: Int): Option[Pair] = {
+        def findDeepValue(current: Zipper.Location[Int], depth: Int): Option[Zipper.Location[Int]] = {
           current match {
-            case RegularNumber(_) => None
-            case p@Pair(lhs, rhs) =>
-              if (depth > 4) Some(p)
+            case Zipper.Location(Zipper.Leaf(_), _) => None
+            case loc@Zipper.Location(Zipper.Fork(_, _), _) =>
+              if (depth > 4) Some(loc)
               else {
-                findDeepValue(lhs, depth + 1) match {
-                  case None => findDeepValue(rhs, depth + 1)
+                findDeepValue(Zipper.left(current), depth + 1) match {
+                  case None => findDeepValue(Zipper.right(current), depth + 1)
                   case some => some
                 }
               }
@@ -79,94 +61,106 @@ case class Day18(input: Vector[String]) extends Problem {
         }
 
         @tailrec
-        def findLeft(current: SnailfishNumber): Option[RegularNumber] = {
+        def findLeft(
+          current: Zipper.Location[Int],
+          acc: List[Zipper.Location[Int] => Zipper.Location[Int]] = Nil
+        ): Option[(Zipper.Location[Int], List[Zipper.Location[Int] => Zipper.Location[Int]])] = {
           @tailrec
-          def descend(s: SnailfishNumber): RegularNumber = s match {
-            case Pair(_, rhs) => descend(rhs)
-            case r@RegularNumber(_) => r
+          def descend(
+            loc: Zipper.Location[Int],
+            acc: List[Zipper.Location[Int] => Zipper.Location[Int]]
+          ): (Zipper.Location[Int], List[Zipper.Location[Int] => Zipper.Location[Int]]) = loc match {
+            case Zipper.Location(Zipper.Fork(_, _), _) => descend(Zipper.right(loc), Zipper.up[Int] _ :: acc)
+            case Zipper.Location(Zipper.Leaf(_), _) => (loc, acc)
           }
 
-          parents.get(current) match {
-            case Some(parent) =>
-              if (parent.rhs == current) Some(descend(parent.lhs))
-              else findLeft(parent)
-            case None => None
+          current match {
+            case Zipper.Location(_, Zipper.Top()) => None
+            case loc@Zipper.Location(_, Zipper.L(_, _)) => findLeft(Zipper.up(loc), Zipper.left[Int] _ :: acc)
+            case loc@Zipper.Location(_, Zipper.R(_, _)) => Some(descend(Zipper.left(Zipper.up(loc)), Zipper.up[Int] _ :: Zipper.right[Int] _ :: acc))
           }
         }
 
         @tailrec
-        def findRight(current: SnailfishNumber): Option[RegularNumber] = {
+        def findRight(
+          current: Zipper.Location[Int],
+          acc: List[Zipper.Location[Int] => Zipper.Location[Int]] = Nil
+        ): Option[(Zipper.Location[Int], List[Zipper.Location[Int] => Zipper.Location[Int]])] = {
           @tailrec
-          def descend(s: SnailfishNumber): RegularNumber = s match {
-            case Pair(lhs, _) => descend(lhs)
-            case r@RegularNumber(_) => r
+          def descend(
+            loc: Zipper.Location[Int],
+            acc: List[Zipper.Location[Int] => Zipper.Location[Int]]
+          ): (Zipper.Location[Int], List[Zipper.Location[Int] => Zipper.Location[Int]]) = loc match {
+            case Zipper.Location(Zipper.Fork(_, _), _) => descend(Zipper.left(loc), Zipper.up[Int] _ :: acc)
+            case Zipper.Location(Zipper.Leaf(_), _) => (loc, acc)
           }
 
-          parents.get(current) match {
-            case Some(parent) =>
-              if (parent.lhs == current) Some(descend(parent.rhs))
-              else findRight(parent)
-            case None => None
+          current match {
+            case Zipper.Location(_, Zipper.Top()) => None
+            case loc@Zipper.Location(_, Zipper.R(_, _)) => findRight(Zipper.up(loc), Zipper.right[Int] _ :: acc)
+            case loc@Zipper.Location(_, Zipper.L(_, _)) => Some(descend(Zipper.right(Zipper.up(loc)), Zipper.up[Int] _ :: Zipper.left[Int] _ :: acc))
           }
         }
 
-        findDeepValue(root, 1) match {
+        val rootLocation = Zipper.top(root)
+
+        findDeepValue(rootLocation, 1) match {
           case None => root
-          case Some(p@Pair(RegularNumber(l), RegularNumber(r))) =>
-            val left = findLeft(p)
-            val right = findRight(p)
+          case Some(deepLocation@Zipper.Location(Zipper.Fork(Zipper.Leaf(l), Zipper.Leaf(r)), _)) =>
+            val left = findLeft(deepLocation)
 
-            val (afterLeft, afterLeftParents) = left match {
-              case Some(rn@RegularNumber(n)) =>
-                val newRoot = replace(rn, RegularNumber(n + l), parents)
-                (newRoot, parentMap(newRoot))
-              case None => (root, parents)
+            val deepLocationAfterLeft = left match {
+              case Some((leftLocation@Zipper.Location(Zipper.Leaf(n), _), pathBack)) =>
+                val newLocation = Zipper.modify(leftLocation, (_: SnailfishNumber) => Zipper.Leaf(n + l))
+                pathBack.foldLeft(newLocation)((loc, f) => f(loc))
+              case None => deepLocation
             }
 
-            val (_, afterRightParents) = right match {
-              case Some(rn@RegularNumber(n)) =>
-                val newRoot = replace(rn, RegularNumber(n + r), afterLeftParents)
-                (newRoot, parentMap(newRoot))
-              case None => (afterLeft, afterLeftParents)
+            val right = findRight(deepLocationAfterLeft)
+
+            val deepLocationAfterRight = right match {
+              case Some((rightLocation@Zipper.Location(Zipper.Leaf(n), _), pathBack)) =>
+                val newLocation = Zipper.modify(rightLocation, (_: SnailfishNumber) => Zipper.Leaf(n + r))
+                pathBack.foldLeft(newLocation)((loc, f) => f(loc))
+              case None => deepLocationAfterLeft
             }
 
-            replace(p, RegularNumber(0), afterRightParents)
+            val replacedWithZero = Zipper.modify(deepLocationAfterRight, (_: SnailfishNumber) => Zipper.Leaf(0))
+            Zipper.upmost(replacedWithZero).tree
           case Some(p) => throw new IllegalStateException(s"Invalid deep pair: $p")
         }
       }
 
       def split(root: SnailfishNumber): SnailfishNumber = {
-        val parents = parentMap(root)
-
-        def findBigValue(current: SnailfishNumber): Option[RegularNumber] = {
+        def findBigValue(current: Zipper.Location[Int]): Option[Zipper.Location[Int]] = {
           current match {
-            case rn@RegularNumber(n) if n > 9 => Some(rn)
-            case RegularNumber(_) => None
-            case Pair(lhs, rhs) =>
-              findBigValue(lhs) match {
-                case None => findBigValue(rhs)
+            case loc@Zipper.Location(Zipper.Leaf(n), _) if n > 9 =>
+              Some(loc)
+            case Zipper.Location(Zipper.Leaf(_), _) => None
+            case Zipper.Location(Zipper.Fork(_, _), _) =>
+              findBigValue(Zipper.left(current)) match {
+                case None => findBigValue(Zipper.right(current))
                 case some => some
               }
           }
         }
 
-        findBigValue(root) match {
+        findBigValue(Zipper.top(root)) match {
           case None => root
-          case Some(rn@RegularNumber(n)) => replace(
-            rn,
-            Pair(RegularNumber(n / 2), RegularNumber(n / 2 + n % 2)),
-            parents
-          )
+          case Some(bigLocation@Zipper.Location(Zipper.Leaf(n), _)) => Zipper.upmost(Zipper.modify(
+            bigLocation,
+            (_: SnailfishNumber) => Zipper.Fork(Zipper.Leaf(n / 2), Zipper.Leaf(n / 2 + n % 2))
+          )).tree
         }
       }
 
       val exploded = explode(input)
 
-      if (exploded != input) reduce(exploded)
+      if (exploded ne input) reduce(exploded)
       else {
         val splitted = split(exploded)
 
-        if (splitted != exploded) reduce(splitted)
+        if (splitted ne exploded) reduce(splitted)
         else splitted
       }
     }
@@ -174,26 +168,14 @@ case class Day18(input: Vector[String]) extends Problem {
     reduce(sum)
   }
 
-  private sealed trait SnailfishNumber {
-    def magnitude: Int
-    override def equals(obj: Any): Boolean = super.equals(obj)
-    override def hashCode(): Int = super.hashCode()
-  }
-  private case class RegularNumber(value: Int) extends SnailfishNumber {
-    override def magnitude: Int = value
-  }
-  private case class Pair(lhs: SnailfishNumber, rhs: SnailfishNumber) extends SnailfishNumber {
-    override def magnitude: Int = 3 * lhs.magnitude + 2 * rhs.magnitude
-  }
-
   private case object Grammar extends RegexParsers {
     def snailfishNumber: Parser[SnailfishNumber] = pair | number
 
-    def pair: Parser[Pair] = "[" ~> snailfishNumber ~ ("," ~> snailfishNumber <~ "]") ^^ {
-      case lhs ~ rhs => Pair(lhs, rhs)
+    def pair: Parser[SnailfishNumber] = "[" ~> snailfishNumber ~ ("," ~> snailfishNumber <~ "]") ^^ {
+      case lhs ~ rhs => Zipper.Fork(lhs, rhs)
     }
 
-    def number: Parser[RegularNumber] = "\\d+".r ^^ (s => RegularNumber(s.toInt))
+    def number: Parser[SnailfishNumber] = "\\d+".r ^^ (s => Zipper.Leaf(s.toInt))
   }
 }
 
