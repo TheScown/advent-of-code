@@ -63,42 +63,38 @@ case class Day18(input: Vector[String]) extends Problem {
         @tailrec
         def findLeft(
           current: Zipper.Location[Int],
-          pathBack: Zipper.Location[Int] => Zipper.Location[Int] = identity
-        ): Option[(Zipper.Location[Int], Zipper.Location[Int] => Zipper.Location[Int])] = {
+        ): Option[Zipper.Location[Int]] = {
           @tailrec
           def descend(
             loc: Zipper.Location[Int],
-            pathBack: Zipper.Location[Int] => Zipper.Location[Int]
-          ): (Zipper.Location[Int], Zipper.Location[Int] => Zipper.Location[Int]) = loc match {
-            case Zipper.Location(Zipper.Fork(_, _), _) => descend(Zipper.right(loc), Zipper.up[Int] _ andThen pathBack)
-            case Zipper.Location(Zipper.Leaf(_), _) => (loc, pathBack)
+          ): Zipper.Location[Int] = loc match {
+            case Zipper.Location(Zipper.Fork(_, _), _) => descend(Zipper.right(loc))
+            case Zipper.Location(Zipper.Leaf(_), _) => loc
           }
 
           current match {
             case Zipper.Location(_, Zipper.Top()) => None
-            case loc@Zipper.Location(_, Zipper.L(_, _)) => findLeft(Zipper.up(loc), Zipper.left[Int] _ andThen pathBack)
-            case loc@Zipper.Location(_, Zipper.R(_, _)) => Some(descend(Zipper.left(Zipper.up(loc)), Zipper.up[Int] _ andThen Zipper.right[Int] andThen pathBack))
+            case loc@Zipper.Location(_, Zipper.L(_, _)) => findLeft(Zipper.up(loc))
+            case loc@Zipper.Location(_, Zipper.R(_, _)) => Some(descend(Zipper.left(Zipper.up(loc))))
           }
         }
 
         @tailrec
         def findRight(
           current: Zipper.Location[Int],
-          pathBack: Zipper.Location[Int] => Zipper.Location[Int] = identity
-        ): Option[(Zipper.Location[Int], Zipper.Location[Int] => Zipper.Location[Int])] = {
+        ): Option[Zipper.Location[Int]] = {
           @tailrec
           def descend(
             loc: Zipper.Location[Int],
-            pathBack: Zipper.Location[Int] => Zipper.Location[Int]
-          ): (Zipper.Location[Int], Zipper.Location[Int] => Zipper.Location[Int]) = loc match {
-            case Zipper.Location(Zipper.Fork(_, _), _) => descend(Zipper.left(loc), Zipper.up[Int] _ andThen pathBack)
-            case Zipper.Location(Zipper.Leaf(_), _) => (loc, pathBack)
+          ): Zipper.Location[Int] = loc match {
+            case Zipper.Location(Zipper.Fork(_, _), _) => descend(Zipper.left(loc))
+            case Zipper.Location(Zipper.Leaf(_), _) => loc
           }
 
           current match {
             case Zipper.Location(_, Zipper.Top()) => None
-            case loc@Zipper.Location(_, Zipper.R(_, _)) => findRight(Zipper.up(loc), Zipper.right[Int] _ andThen pathBack)
-            case loc@Zipper.Location(_, Zipper.L(_, _)) => Some(descend(Zipper.right(Zipper.up(loc)), Zipper.up[Int] _ andThen Zipper.left[Int] andThen pathBack))
+            case loc@Zipper.Location(_, Zipper.R(_, _)) => findRight(Zipper.up(loc))
+            case loc@Zipper.Location(_, Zipper.L(_, _)) => Some(descend(Zipper.right(Zipper.up(loc))))
           }
         }
 
@@ -110,18 +106,18 @@ case class Day18(input: Vector[String]) extends Problem {
             val left = findLeft(deepLocation)
 
             val deepLocationAfterLeft = left match {
-              case Some((leftLocation@Zipper.Location(Zipper.Leaf(n), _), pathBack)) =>
+              case Some(leftLocation@Zipper.Location(Zipper.Leaf(n), _)) =>
                 val newLocation = Zipper.modify(leftLocation, (_: SnailfishNumber) => Zipper.Leaf(n + l))
-                pathBack(newLocation)
+                Zipper.up(findRight(newLocation).get)
               case None => deepLocation
             }
 
             val right = findRight(deepLocationAfterLeft)
 
             val deepLocationAfterRight = right match {
-              case Some((rightLocation@Zipper.Location(Zipper.Leaf(n), _), pathBack)) =>
+              case Some(rightLocation@Zipper.Location(Zipper.Leaf(n), _)) =>
                 val newLocation = Zipper.modify(rightLocation, (_: SnailfishNumber) => Zipper.Leaf(n + r))
-                pathBack(newLocation)
+                Zipper.up(findLeft(newLocation).get)
               case None => deepLocationAfterLeft
             }
 
