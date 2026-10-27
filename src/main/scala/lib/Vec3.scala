@@ -14,7 +14,7 @@ case class Vec3[T](x1: T, x2: T, x3: T)(implicit n: Numeric[T]) {
 
   def +(v2: Vec3[T]): Vec3[T] = Vec3(x1 + v2.x1, x2 + v2.x2, x3 + v2.x3)
   def -(v2: Vec3[T]): Vec3[T] = Vec3(x1 - v2.x1, x2 - v2.x2, x3 - v2.x3)
-  def unary_- : Vec3[T] = -1.asInstanceOf[T] *: this
+  def unary_- : Vec3[T] = n.negate(n.one) *: this
 
   def norm1: T = x1.abs + x2.abs + x3.abs
   def normMax: T = Seq(x1, x2, x3).max
