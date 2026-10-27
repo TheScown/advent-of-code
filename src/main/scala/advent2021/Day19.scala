@@ -44,25 +44,34 @@ case class Day19(input: Vector[String]) extends Problem {
   ): Vector[Scanner] = {
     if (unknownScanners.isEmpty) knownScanners
     else {
-      val possibleScannerLocations = for {
+      val scannerPairs = for {
         known <- newlyKnownScanners
         unknown <- unknownScanners
-        basis <- allBases
-        absoluteReading <- known.absoluteReadings
-        unknownReading <- unknown.readings
-      } yield {
-        val rebasedUnknownReading = basis * unknownReading
-        (basis, absoluteReading, rebasedUnknownReading, absoluteReading - rebasedUnknownReading, unknown)
-      }
+        // The twelve overlapping beacons will each have the same distances to the 11 other beacons, and they count twice
+        if (known.signature intersect unknown.signature).size >= 12 * 11 / 2
+      } yield (known, unknown)
 
-      val validPossibleScannerLocations = possibleScannerLocations
-        .groupBy(t => (t._4, t._1, t._5))
-        .filter { case (_, tuples) =>
-          tuples.size >= 12
+      val readingPairs = (for {
+        (known, unknown) <- scannerPairs
+        knownReading <- known.readings
+        unknownReading <- unknown.readings
+        // The overlapping beacons appear in both scanners, thus a beacon in both places will match at least 11 other beacons
+        if (known.beaconSignatures(knownReading) intersect unknown.beaconSignatures(unknownReading)).size >= 11
+      } yield (known.basis.get * knownReading + known.position.get, unknownReading, unknown))
+        .groupBy(_._3)
+
+      // Find a basis such that all matching pairs give the same scanner position
+      val validPossibleScannerLocations = for {
+        (scanner, pairs) <- readingPairs
+        basis <- allBases
+        mappedPairs = pairs.map { case (knownReading, unknownReading, _) =>
+          knownReading - (basis * unknownReading)
         }
+        if mappedPairs.toSet.size == 1
+      } yield (scanner, basis, mappedPairs.head)
 
       val updatedScanners = validPossibleScannerLocations.map {
-        case ((position, basis, scanner), _) => scanner.copy(position = Some(position), basis = Some(basis))
+        case (scanner, basis, position) => scanner.copy(position = Some(position), basis = Some(basis))
       }.toVector
 
       val updatedScannerIds = updatedScanners.map(_.id).toSet
@@ -119,6 +128,20 @@ case class Day19(input: Vector[String]) extends Problem {
       readings.map(reading => {
         (basis.get * reading) + position.get
       })
+    }
+
+    lazy val beaconSignatures: Map[Vec3[Int], Set[Int]] = {
+      readings.map { reading =>
+        val distances = for {
+          other <- readings
+          if other != reading
+        } yield (reading - other).norm1
+        reading -> distances.toSet
+      }.toMap
+    }
+
+    lazy val signature: Set[Int] = {
+      beaconSignatures.values.flatten.toSet
     }
   }
 
