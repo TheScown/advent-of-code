@@ -24,7 +24,7 @@ case class Grid[T](values: Vector[Vector[T]], wrapping: Boolean = false) {
   }
 
   def getOrElse(address: Complex[Int], defaultValue: T): T = {
-    if (address.re >= 0 && address.im <= 0) this(address) else defaultValue
+    if (address.re >= 0 && address.re < rowLength && address.im <= 0 && address.im > -columnLength) this(address) else defaultValue
   }
 
   def updated(address: Complex[Int], value: T): Grid[T] = {
