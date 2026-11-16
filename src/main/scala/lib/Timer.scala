@@ -15,7 +15,7 @@ object Timer {
       println(s"Duration: $duration ns")
     } else if (duration < 1_000_000) {
       println(s"Duration: ${TimeUnit.MICROSECONDS.convert(duration, TimeUnit.NANOSECONDS)} µs")
-    } else if (duration < 5_000_000_000L) {
+    } else if (duration < 10_000_000_000L) {
       println(s"Duration: ${TimeUnit.MILLISECONDS.convert(duration, TimeUnit.NANOSECONDS)} ms")
     } else {
       println(s"Duration: ${TimeUnit.SECONDS.convert(duration, TimeUnit.NANOSECONDS)} s")
