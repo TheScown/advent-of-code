@@ -41,7 +41,7 @@ case class Day25(input: Vector[String]) extends Problem {
   }
 
   override def solve2(): Unit = {
-    println("Boost the signal!")
+    println("Remotely start the sleigh!")
   }
 }
 
